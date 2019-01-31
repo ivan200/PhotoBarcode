@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/top_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    android:background="@color/colorBackgroundDark"
+    android:orientation="vertical">
+
+    <com.ivan200.photobarcodelib.CameraSourcePreview
+        android:id="@+id/preview"
+        android:layout_marginTop="@dimen/height_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.ivan200.photobarcodelib.GraphicOverlay
+            android:id="@+id/graphicOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </com.ivan200.photobarcodelib.CameraSourcePreview>
+
+    <RelativeLayout
+        android:id="@+id/btn_focus"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/topText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginTop="64dp"
+            android:shadowColor="@color/text_shadow"
+            android:shadowDx="1"
+            android:shadowDy="1"
+            android:shadowRadius="2"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/focus_square"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:srcCompat="@drawable/ic_camera_focus"
+            android:visibility="visible"/>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/barcode_square"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_margin="38dp"
+            android:adjustViewBounds="true"
+            android:alpha="0.5"/>
+
+        <LinearLayout
+            android:id="@+id/flashIconButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end">
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:background="@color/colorTransparent"
+                android:id="@+id/flashIcon"
+                android:scaleType="center"
+                android:layout_width="@dimen/size_icon_bounding"
+                android:layout_height="@dimen/size_icon_bounding"
+                app:srcCompat="@drawable/ic_camera_flash_off"/>
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:layout_marginTop="@dimen/height_toolbar"
+            android:id="@+id/preview_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <LinearLayout
+            android:id="@+id/ll_takePicture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_gravity="bottom"
+            android:background="@color/colorTextBlackDivider"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            android:weightSum="3">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/btn_redoPicture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scaleType="center"
+                    app:backgroundTint="@color/ColorBackgroundGrey50"
+                    app:borderWidth="0dp"
+                    app:elevation="3dp"
+                    app:fabSize="mini"
+                    app:maxImageSize="24dp"
+                    app:srcCompat="@drawable/ic_camera_redo"/>
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btn_takePicture"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_default"
+                android:layout_marginTop="@dimen/margin_default"
+                android:layout_weight="1"
+                android:background="@color/colorTransparent"
+                android:clickable="true"
+                android:focusable="true"
+                app:srcCompat="@drawable/ic_camera_take_picture"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

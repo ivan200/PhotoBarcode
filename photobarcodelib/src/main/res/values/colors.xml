@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorBackgroundDark">#212121</color>
+    <color name="text_shadow">#7F000000</color>
+    <color name="colorTransparent">#00000000</color>
+    <color name="colorTextBlackDivider">#1f000000</color> <!--black 12%-->
+    <color name="ColorBackgroundGrey50">#fafafa</color>
+
+
+</resources>

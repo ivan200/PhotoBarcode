@@ -1,0 +1,6 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <dimen name="size_icon_bounding">56dp</dimen>
+    <dimen name="height_toolbar">56dp</dimen>
+    <dimen name="margin_default">16dp</dimen>
+
+</resources>
