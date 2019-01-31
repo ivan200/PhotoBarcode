@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_menu_gallery"/>
+        app:srcCompat="@drawable/ic_qrcode"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_picture"
@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_menu_camera"/>
+        app:srcCompat="@drawable/ic_photo"/>
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
