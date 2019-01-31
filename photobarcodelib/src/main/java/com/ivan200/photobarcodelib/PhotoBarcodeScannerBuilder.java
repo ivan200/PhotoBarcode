@@ -13,6 +13,8 @@ import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.ivan200.photobarcodelib.images.ImageHelper;
 
+import java.io.File;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.util.Consumer;
@@ -32,11 +34,11 @@ public class PhotoBarcodeScannerBuilder {
     protected int mFacing = CameraSource.CAMERA_FACING_BACK;
     protected boolean mAutoFocusEnabled = true;
 
-    protected PhotoBarcodeScanner.OnResultListener onResultListener;
+    protected Consumer<Barcode> onResultListener;
 
     protected int mTrackerColor = Color.parseColor("#F44336"); //Material Red 500
 
-    protected boolean mBleepEnabled = false;
+    protected boolean mSoundEnabled = true;
 
     protected boolean mFlashEnabledByDefault = false;
 
@@ -53,6 +55,9 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isTakingPictureMode() {
         return takingPictureMode;
     }
+    /**
+     * Activate takingPicture mode instead of taking barcode mode
+     */
     public PhotoBarcodeScannerBuilder withTakingPictureMode(){
         takingPictureMode = true;
         return this;
@@ -62,6 +67,9 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isFocusOnTap() {
         return focusOnTap;
     }
+    /**
+     * Allow focus picture when user tap on screen
+     */
     public PhotoBarcodeScannerBuilder withFocusOnTap(boolean enable){
         focusOnTap = enable;
         return this;
@@ -71,28 +79,45 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isPreviewImage() {
         return previewImage;
     }
+    /**
+     * allow preview image and redo it before it returned
+     */
     public PhotoBarcodeScannerBuilder withPreviewImage(boolean enable){
         previewImage = enable;
         return this;
     }
 
-    protected PhotoBarcodeScanner.OnPictureListener pictureListener;
-    public PhotoBarcodeScanner.OnPictureListener getPictureListener() {
+    protected Consumer<File> pictureListener;
+    public Consumer<File> getPictureListener() {
         return pictureListener;
     }
-    public PhotoBarcodeScannerBuilder withPictureListener(@NonNull PhotoBarcodeScanner.OnPictureListener pictureListener){
+    /**
+     * set listener to take picture
+     * file will saved in context.getFilesDir()/photos
+     */
+    public PhotoBarcodeScannerBuilder withPictureListener(@NonNull Consumer<File> pictureListener){
         this.pictureListener = pictureListener;
         return this;
     }
 
-    protected PhotoBarcodeScanner.OnErrorListener errorListener;
-    public PhotoBarcodeScanner.OnErrorListener getErrorListener() {
+    protected Consumer<Throwable> errorListener;
+    public Consumer<Throwable> getErrorListener() {
         if(errorListener == null){
-            errorListener = getDefaultErrorListener();
+            errorListener = ex-> {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+                builder.setTitle(mActivity.getString(android.R.string.dialog_alert_title));
+                builder.setMessage(ex.getLocalizedMessage());
+                builder.setPositiveButton(mActivity.getString(android.R.string.ok), (dialog, id) -> dialog.dismiss());
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            };
         }
         return errorListener;
     }
-    public PhotoBarcodeScannerBuilder withErrorListener(@NonNull PhotoBarcodeScanner.OnErrorListener errorListener){
+    /**
+     * Set listener of errors which should? be shown to user
+     */
+    public PhotoBarcodeScannerBuilder withErrorListener(Consumer<Throwable> errorListener){
         this.errorListener = errorListener;
         return this;
     }
@@ -101,6 +126,9 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isCameraFullScreenMode() {
         return cameraFullScreenMode;
     }
+    /**
+     * Mode of taking pictures: FullScreen - 16/9 with horizontal crop or otherwise 4/3 with screen fit
+     */
     public PhotoBarcodeScannerBuilder withCameraFullScreenMode(boolean cameraFullScreenMode) {
         this.cameraFullScreenMode = cameraFullScreenMode;
         return this;
@@ -110,6 +138,9 @@ public class PhotoBarcodeScannerBuilder {
     public float getRequestedFps() {
         return requestedFps;
     }
+    /**
+     * Fps in preview of picture.
+     */
     public PhotoBarcodeScannerBuilder withRequestedFps(float requestedFps) {
         this.requestedFps = requestedFps;
         return this;
@@ -119,6 +150,10 @@ public class PhotoBarcodeScannerBuilder {
     public int getImageLargerSide() {
         return imageLargerSide;
     }
+    /**
+     * Once the picture is taken, it automatically resizes by the maximum side before returning.
+     * Or does not change the size if the photo is smaller than this value.
+     */
     public PhotoBarcodeScannerBuilder withImageLargerSide(int size) {
         this.imageLargerSide = size;
         return this;
@@ -128,6 +163,9 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isCameraTryFixOrientation() {
         return cameraTryFixOrientation;
     }
+    /**
+     * Automatically try to rotate image by phone sensors (accelerometer or gyroscope)
+     */
     public PhotoBarcodeScannerBuilder withCameraTryFixOrientation(boolean cameraTryFixOrientation) {
         this.cameraTryFixOrientation = cameraTryFixOrientation;
         return this;
@@ -137,6 +175,10 @@ public class PhotoBarcodeScannerBuilder {
     public boolean hasThumbnails() {
         return hasThumbnails;
     }
+    /**
+     * If this flag is set, in addition to the photo the thumbnail will be saved too
+     * in context.getFilesDir()/thumbnails
+     */
     public PhotoBarcodeScannerBuilder withThumbnails(boolean enabled) {
         this.hasThumbnails = enabled;
         return this;
@@ -147,24 +189,24 @@ public class PhotoBarcodeScannerBuilder {
     public boolean isCameraLockRotate() {
         return cameraLockRotate;
     }
+    /**
+     * lock rotate phone and orientation in camera activity (to avoid recreating view)
+     */
     public PhotoBarcodeScannerBuilder withCameraLockRotate(boolean cameraLockRotate) {
         this.cameraLockRotate = cameraLockRotate;
         return this;
     }
 
-    protected boolean cameraShutterSound = true;
-    public boolean hasCameraShutterSound() {
-        return cameraShutterSound;
-    }
-    public PhotoBarcodeScannerBuilder withCameraShutterSound(boolean cameraShutterSound) {
-        this.cameraShutterSound = cameraShutterSound;
-        return this;
-    }
-
     protected Consumer<Throwable> minorErrorHandler;
     public Consumer<Throwable> getMinorErrorHandler() {
+        if(minorErrorHandler == null){
+            minorErrorHandler = Throwable::printStackTrace;
+        }
         return minorErrorHandler;
     }
+    /**
+     * Sets error handler of non fatal exceptions
+     */
     public PhotoBarcodeScannerBuilder withMinorErrorHandler(Consumer<Throwable> minorErrorHandler) {
         this.minorErrorHandler = minorErrorHandler;
         return this;
@@ -180,7 +222,7 @@ public class PhotoBarcodeScannerBuilder {
     /**
      * Called immediately after a barcode was scanned
      */
-    public PhotoBarcodeScannerBuilder withResultListener(@NonNull PhotoBarcodeScanner.OnResultListener onResultListener){
+    public PhotoBarcodeScannerBuilder withResultListener(@NonNull Consumer<Barcode> onResultListener){
         this.onResultListener = onResultListener;
         return this;
     }
@@ -206,26 +248,10 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
-     * Makes the barcode scanner use the camera facing back
+     * Makes the barcode scanner use the camera facing back or front
      */
-    public PhotoBarcodeScannerBuilder withBackFacingCamera(){
-        mFacing = CameraSource.CAMERA_FACING_BACK;
-        return this;
-    }
-
-    /**
-     * Makes the barcode scanner use camera facing front
-     */
-    public PhotoBarcodeScannerBuilder withFrontFacingCamera(){
-        mFacing = CameraSource.CAMERA_FACING_FRONT;
-        return this;
-    }
-
-    /**
-     * Either CameraSource.CAMERA_FACING_FRONT or CameraSource.CAMERA_FACING_BACK
-     */
-    public PhotoBarcodeScannerBuilder withCameraFacing(int cameraFacing){
-        mFacing = cameraFacing;
+    public PhotoBarcodeScannerBuilder withCameraFacingBack(boolean back){
+        mFacing = back ? CameraSource.CAMERA_FACING_BACK : CameraSource.CAMERA_FACING_FRONT;
         return this;
     }
 
@@ -246,10 +272,10 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
-     * Enables or disables a bleep sound whenever a barcode is scanned
+     * Enables or disables a sound whenever picture taken or a barcode is scanned
      */
-    public PhotoBarcodeScannerBuilder withBleepEnabled(boolean enabled){
-        mBleepEnabled = enabled;
+    public PhotoBarcodeScannerBuilder withSoundEnabled(boolean enabled){
+        mSoundEnabled = enabled;
         return this;
     }
 
@@ -261,11 +287,8 @@ public class PhotoBarcodeScannerBuilder {
         return this;
     }
 
-    /**
-     * Shows a text message at the top of the barcode scanner
-     */
-    public PhotoBarcodeScannerBuilder withFlashLightEnabledByDefault(){
-        mFlashEnabledByDefault = true;
+    public PhotoBarcodeScannerBuilder withFlashLightEnabledByDefault(boolean enabled){
+        mFlashEnabledByDefault = enabled;
         return this;
     }
 
@@ -305,7 +328,7 @@ public class PhotoBarcodeScannerBuilder {
      * Enables the default center tracker. This tracker is always visible and turns green when a barcode is found.\n
      * Please note that you can still scan a barcode outside the center tracker! This is purely a visual change.
      */
-    public PhotoBarcodeScannerBuilder withCenterTracker(){
+    public PhotoBarcodeScannerBuilder withCenterTracker(boolean enabled){
         mScannerMode = PhotoBarcodeScanner.SCANNER_MODE_CENTER;
         return this;
     }
@@ -388,17 +411,6 @@ public class PhotoBarcodeScannerBuilder {
         }
     }
 
-    private PhotoBarcodeScanner.OnErrorListener getDefaultErrorListener(){
-        return ex -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
-            builder.setTitle(mActivity.getString(android.R.string.dialog_alert_title));
-            builder.setMessage(ex.getLocalizedMessage());
-            builder.setPositiveButton(mActivity.getString(android.R.string.ok), (dialog, id) -> dialog.dismiss());
-            AlertDialog dialog = builder.create();
-            dialog.show();
-        };
-    }
-
     /**
      * Get the activity associated with this builder
      */
@@ -436,12 +448,11 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
-     * Get the bleep enabled value associated with this builder
+     * Get the sound enabled value associated with this builder
      */
-    public boolean isBleepEnabled() {
-        return mBleepEnabled;
+    public boolean isSoundEnabled() {
+        return mSoundEnabled;
     }
-
     /**
      * Get the flash enabled by default value associated with this builder
      */

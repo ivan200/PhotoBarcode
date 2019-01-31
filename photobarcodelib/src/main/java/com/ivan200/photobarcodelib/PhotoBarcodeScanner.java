@@ -1,6 +1,7 @@
 package com.ivan200.photobarcodelib;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.view.View;
@@ -13,10 +14,9 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.File;
-
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.util.Consumer;
 
 public class PhotoBarcodeScanner {
 
@@ -35,39 +35,24 @@ public class PhotoBarcodeScanner {
 
     private FrameLayout mContentView; //Content frame for fragments
 
-    private OnResultListener onResultListener;
+    private Consumer<Barcode> onResultListener;
 
     public PhotoBarcodeScanner(@NonNull PhotoBarcodeScannerBuilder photoBarcodeScannerBuilder) {
         this.mPhotoBarcodeScannerBuilder = photoBarcodeScannerBuilder;
     }
 
-    public void setOnResultListener(OnResultListener onResultListener) {
+    public void setOnResultListener(Consumer<Barcode> onResultListener) {
         this.onResultListener = onResultListener;
     }
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onBarcodeScannerResult(Barcode barcode){
-        onResultListener.onResult(barcode);
+        onResultListener.accept(barcode);
         EventBus.getDefault().removeStickyEvent(barcode);
+
         EventBus.getDefault().unregister(this);
         mPhotoBarcodeScannerBuilder.clean();
     }
-
-    /**
-     * Interface definition for a callback to be invoked when a view is clicked.
-     */
-    public interface OnResultListener {
-        void onResult(Barcode barcode);
-    }
-
-    public interface OnPictureListener {
-        void onResult(File file);
-    }
-
-    public interface OnErrorListener {
-        void onError(Throwable ex);
-    }
-
 
     /**
      * Start a scan for a barcode
@@ -76,22 +61,25 @@ public class PhotoBarcodeScanner {
      */
     public void start(){
         EventBus.getDefault().register(this);
-        if(mPhotoBarcodeScannerBuilder.getActivity() == null){
+
+        Activity activity = mPhotoBarcodeScannerBuilder.getActivity();
+        if(activity == null){
             throw new RuntimeException("Could not start scan: Activity reference lost (please rebuild the PhotoBarcodeScanner before calling start)");
         }
-        PackageManager packageManager = mPhotoBarcodeScannerBuilder.getActivity().getPackageManager();
+        PackageManager packageManager = activity.getPackageManager();
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            throw new RuntimeException("Device has not camera feature");
+            mPhotoBarcodeScannerBuilder.getErrorListener().accept(new RuntimeException("Device has not camera feature"));
+            return;
         }
 
-        int mCameraPermission = ActivityCompat.checkSelfPermission(mPhotoBarcodeScannerBuilder.getActivity(), Manifest.permission.CAMERA);
+        int mCameraPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
         if (mCameraPermission != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
         }else{
             //Open activity
             EventBus.getDefault().postSticky(this);
-            Intent intent = new Intent(mPhotoBarcodeScannerBuilder.getActivity(), PhotoBarcodeActivity.class);
-            mPhotoBarcodeScannerBuilder.getActivity().startActivity(intent);
+            Intent intent = new Intent(activity, PhotoBarcodeActivity.class);
+            activity.startActivity(intent);
         }
     }
 

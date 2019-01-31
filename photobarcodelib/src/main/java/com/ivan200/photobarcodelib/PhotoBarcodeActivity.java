@@ -87,10 +87,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     Future<?> savePictureFuture;
     class SavePictureTask implements Runnable {
         byte[] jpeg;
-        PhotoBarcodeScanner.OnPictureListener onPictureListener;
-        PhotoBarcodeScanner.OnErrorListener onErrorListener;
+        Consumer<File> onPictureListener;
+        Consumer<Throwable> onErrorListener;
 
-        SavePictureTask(byte[] jpeg, PhotoBarcodeScanner.OnPictureListener onPictureListener, PhotoBarcodeScanner.OnErrorListener onErrorListener) {
+        SavePictureTask(byte[] jpeg, Consumer<File> onPictureListener, Consumer<Throwable> onErrorListener) {
             this.jpeg = jpeg;
             this.onPictureListener = onPictureListener;
             this.onErrorListener = onErrorListener;
@@ -353,7 +353,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                     Log.d(TAG, "Barcode detected! - " + barcode.displayValue);
                     EventBus.getDefault().postSticky(barcode);
                     updateCenterTrackerForDetectedState();
-                    if (mPhotoBarcodeScannerBuilder.isBleepEnabled()) {
+                    if (mPhotoBarcodeScannerBuilder.isSoundEnabled()) {
                         mSoundPoolPlayer.playShortResource(R.raw.bleep);
                     }
                     mGraphicOverlay.postDelayed(this::finish, 50);
@@ -381,7 +381,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
                 RuntimeException runtimeException = new RuntimeException("Unable to start camera source.", e);
                 if(onTakingErrorObserver!= null){
-                    onTakingErrorObserver.onError(runtimeException);
+                    onTakingErrorObserver.accept(runtimeException);
                 } else {
                     handleError(PhotoBarcodeActivity.this, runtimeException);
                 }
@@ -483,6 +483,18 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     }
 
 
+    private Consumer<File> onTakingPictureObserver = file -> {
+//            mGraphicOverlay.postDelayed(this::finish, 50);
+        setResult(Activity.RESULT_OK);
+        PhotoBarcodeActivity.this.finish();
+        mPhotoBarcodeScannerBuilder.getPictureListener().accept(file);
+    };
+
+    private Consumer<Throwable> onTakingErrorObserver = ex -> {
+        PhotoBarcodeActivity.this.finish();
+        mPhotoBarcodeScannerBuilder.getErrorListener().accept(ex);
+    };
+
     private void takePicture(View v) {
         if (mCameraSourcePreview.isSafeToTakePicture()) {
             mCameraSourcePreview.setSafeToTakePicture(false);
@@ -498,25 +510,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
     }
 
-    private PhotoBarcodeScanner.OnPictureListener onTakingPictureObserver = new PhotoBarcodeScanner.OnPictureListener() {
-        @Override
-        public void onResult(File file) {
-//            mGraphicOverlay.postDelayed(this::finish, 50);
-            setResult(Activity.RESULT_OK);
-            PhotoBarcodeActivity.this.finish();
-            mPhotoBarcodeScannerBuilder.getPictureListener().onResult(file);
-        }
-    };
-
-    private PhotoBarcodeScanner.OnErrorListener onTakingErrorObserver = new PhotoBarcodeScanner.OnErrorListener() {
-        @Override
-        public void onError(Throwable ex) {
-            PhotoBarcodeActivity.this.finish();
-            mPhotoBarcodeScannerBuilder.getErrorListener().onError(ex);
-        }
-    };
-
-    static void handleError(Activity activity, Throwable e){
+    static void handleError(Activity activity, Throwable e) {
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle(e.getLocalizedMessage());
         builder.setPositiveButton(activity.getString(android.R.string.ok), (dialog, id) -> dialog.dismiss());
@@ -534,8 +528,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     }
 
     void setCameraShutterSound() {
-        boolean isShutterSet = mPhotoBarcodeScannerBuilder.getCameraSource().setShutterSound(mPhotoBarcodeScannerBuilder.hasCameraShutterSound());
-        if (!isShutterSet && !mPhotoBarcodeScannerBuilder.hasCameraShutterSound()) {
+        boolean setSound = mPhotoBarcodeScannerBuilder.isSoundEnabled();
+        boolean isShutterSet = mPhotoBarcodeScannerBuilder.getCameraSource().setShutterSound(setSound);
+        if (!isShutterSet && !setSound) {
             boolean mute = muteAudio(true);
             if (!mute) {
                 return;
@@ -571,7 +566,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     }
 
 
-    private void savePicture(byte[] bytes, final PhotoBarcodeScanner.OnPictureListener onPictureListener, final PhotoBarcodeScanner.OnErrorListener onErrorListener) {
+    private void savePicture(byte[] bytes, final Consumer<File> onPictureListener, final Consumer<Throwable> onErrorListener) {
         Exception ex = null;
         try {
             if (mCurrentFile != null) {
@@ -595,9 +590,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
         runOnUiThread(()->{
             if(finalEx == null){
-                onPictureListener.onResult(mCurrentFile);
+                onPictureListener.accept(mCurrentFile);
             } else {
-                onErrorListener.onError(finalEx);
+                onErrorListener.accept(finalEx);
             }
         });
     }
@@ -611,7 +606,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                     onTempPictureSaved(file);
                 }), ex -> tryResumeAction(() -> {
                     mCameraSourcePreview.setSafeToTakePicture(true);
-                    onTakingErrorObserver.onError(ex);
+                    onTakingErrorObserver.accept(ex);
                 }));
                 data = null;
             });
@@ -661,7 +656,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         redoButton.show();
 
         onVolumeKeysDownListener = null;
-        takePictureButton.setOnClickListener(v1 -> onTakingPictureObserver.onResult(mCurrentFile));
+        takePictureButton.setOnClickListener(v1 -> onTakingPictureObserver.accept(mCurrentFile));
     }
 
     private void redoPicture(View v) {
