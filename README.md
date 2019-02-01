@@ -53,7 +53,7 @@ fabBarcode.setOnClickListener(view -> {
  ```
 That's it!
 
-## Or you can customize builder with buch more parameters:
+## Or you can customize builder with much more parameters:
 Additional parameters with default values:
 
 Flags for picture mode:
@@ -89,8 +89,8 @@ Flags for both mode:
 .withFlashLightEnabledByDefault(false) //Enable flash light before open camera 
 .withCameraFacingBack(true)            //Use the camera facing back or front
 .withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
-.withErrorListener(ex->{showAlert()})  //Possivility to customize fatal exceptions occured 
-.withMinorErrorHandler(printStackTrace)//Possivility to customize handler of non fatal exceptions
+.withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
+.withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
 ```
 
 

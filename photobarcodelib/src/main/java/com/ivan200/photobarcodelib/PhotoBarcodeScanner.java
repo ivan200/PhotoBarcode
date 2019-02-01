@@ -4,7 +4,9 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.view.View;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.widget.FrameLayout;
 
 import com.google.android.gms.vision.barcode.Barcode;
@@ -14,8 +16,12 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 
 public class PhotoBarcodeScanner {
@@ -72,10 +78,24 @@ public class PhotoBarcodeScanner {
             return;
         }
 
-        int mCameraPermission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.CAMERA);
-        if (mCameraPermission != PackageManager.PERMISSION_GRANTED) {
-            requestCameraPermission();
-        }else{
+        List<String> cameraPermissions = new ArrayList<>();
+        cameraPermissions.add(Manifest.permission.CAMERA);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                mPhotoBarcodeScannerBuilder.isTakingPictureMode() && mPhotoBarcodeScannerBuilder.isSoundEnabled()){
+            //to disable shutter sound on camera we need check permission for it
+            cameraPermissions.add(Manifest.permission.ACCESS_NOTIFICATION_POLICY);
+        }
+
+        List<String> deniedPermissions = new ArrayList<>();
+        for (String permission : cameraPermissions){
+            if(ContextCompat.checkSelfPermission(activity, permission) != PackageManager.PERMISSION_GRANTED){
+                deniedPermissions.add(permission);
+            }
+        }
+
+        if (!deniedPermissions.isEmpty()) {
+            requestCameraPermission(cameraPermissions);
+        } else {
             //Open activity
             EventBus.getDefault().postSticky(this);
             Intent intent = new Intent(activity, PhotoBarcodeActivity.class);
@@ -83,21 +103,49 @@ public class PhotoBarcodeScanner {
         }
     }
 
-    private void requestCameraPermission() {
-        final String[] mPermissions = new String[]{Manifest.permission.CAMERA};
-        if (!ActivityCompat.shouldShowRequestPermissionRationale(mPhotoBarcodeScannerBuilder.getActivity(), Manifest.permission.CAMERA)) {
-            ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(), mPermissions, RC_HANDLE_CAMERA_PERM);
+    private void requestCameraPermission(List<String> cameraPermissions) {
+        List<String> blockedPermissions = new ArrayList<>();
+        for (String permission : cameraPermissions){
+            if(ActivityCompat.shouldShowRequestPermissionRationale(mPhotoBarcodeScannerBuilder.getActivity(), permission)){
+                blockedPermissions.add(permission);
+            }
+        }
+        if(blockedPermissions.isEmpty()){
+            ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(),
+                    cameraPermissions.toArray(new String[0]), RC_HANDLE_CAMERA_PERM);
             return;
         }
-        View.OnClickListener listener = view -> ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(), mPermissions, RC_HANDLE_CAMERA_PERM);
-        Snackbar.make(mPhotoBarcodeScannerBuilder.mRootView, R.string.permission_camera_rationale,
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(android.R.string.ok, listener)
+
+        boolean isCameraBlocked = blockedPermissions.get(0).equals(Manifest.permission.CAMERA);
+        int messageId = isCameraBlocked ? R.string.permission_camera_rationale
+                : R.string.permission_notification_rationale;
+        String action = isCameraBlocked ? Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                : Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS;
+        Snackbar.make(mPhotoBarcodeScannerBuilder.mRootView, messageId,
+                Snackbar.LENGTH_LONG)
+                .setAction(android.R.string.ok, view ->
+                        openAppSettings(mPhotoBarcodeScannerBuilder.getActivity(), action))
                 .show();
+    }
+
+    public void openAppSettings(Activity activity, String action){
+        Intent intent = new Intent();
+        intent.setAction(action);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.putExtra(Intent.EXTRA_PACKAGE_NAME, activity.getPackageName());
+        }
+        Uri uri = Uri.fromParts("package", activity.getPackageName(), null);
+        intent.setData(uri);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+
+        if (intent.resolveActivity(activity.getPackageManager()) != null) {
+            activity.startActivity(intent);
+        }
     }
 
     public PhotoBarcodeScannerBuilder getPhotoBarcodeScannerBuilder() {
         return mPhotoBarcodeScannerBuilder;
     }
-
 }
