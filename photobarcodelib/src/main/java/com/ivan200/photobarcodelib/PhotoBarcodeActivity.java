@@ -124,7 +124,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
     private boolean active = false;
     private Runnable onResumeHandler = null;
-    private Runnable onBuiderHandler = null;
+    private Runnable onBuilderHandler = null;
 
     @Override
     public void onCreate(Bundle bundle) {
@@ -146,9 +146,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     public void onPhotoBarcodeScanner(PhotoBarcodeScanner photoBarcodeScanner) {
         this.mPhotoBarcodeScanner = photoBarcodeScanner;
         mPhotoBarcodeScannerBuilder = mPhotoBarcodeScanner.getPhotoBarcodeScannerBuilder();
-        if(onBuiderHandler!= null){
-            onBuiderHandler.run();
-            onBuiderHandler = null;
+        if(onBuilderHandler != null){
+            onBuilderHandler.run();
+            onBuilderHandler = null;
         }
         barcodeDetector = mPhotoBarcodeScanner.getPhotoBarcodeScannerBuilder().getBarcodeDetector();
 
@@ -580,7 +580,8 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             }
             imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile, orientationHelper != null ? orientationHelper.getSensorAngle() : 0.0,
                     this, mPhotoBarcodeScannerBuilder.isCameraTryFixOrientation(),
-                    mPhotoBarcodeScannerBuilder.getImageLargerSide());
+                    mPhotoBarcodeScannerBuilder.getImageLargerSide(),
+                    mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT);
         } catch (Exception e) {
             ex = e;
         }
@@ -623,6 +624,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
             Bitmap bmImg = BitmapFactory.decodeFile(file.getAbsolutePath());
             bmImg = ImageHelper.rotateBitmap(bmImg, angle);
+
             previewImage.setImageBitmap(bmImg);
             AlphaAnimation fadeImage = new AlphaAnimation(0, 1);
             fadeImage.setDuration(200);
@@ -721,7 +723,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         if (mPhotoBarcodeScannerBuilder!= null) {
             handler.run();
         } else {
-            this.onBuiderHandler = handler;
+            this.onBuilderHandler = handler;
         }
     }
 

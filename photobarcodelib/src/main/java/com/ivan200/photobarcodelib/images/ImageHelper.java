@@ -119,11 +119,11 @@ public class ImageHelper {
     }
 
     public static File resizeAndSaveBitmap(Context context, Bitmap data, File newFile, int maxSize) throws IOException {
-        Bitmap bitmap = resizeBitmapAndRotateByExif(context, data, maxSize, ExifInterface.ORIENTATION_NORMAL);
+        Bitmap bitmap = resizeBitmapAndRotateByExif(context, data, maxSize, ExifInterface.ORIENTATION_NORMAL, false);
         return saveBitmap(context, bitmap, newFile);
     }
 
-    public static Bitmap resizeBitmapAndRotateByExif(Context context, Bitmap src, int maxSize, int exifOrientation){
+    public static Bitmap resizeBitmapAndRotateByExif(Context context, Bitmap src, int maxSize, int exifOrientation, boolean flipHorizontal){
         if (src == null){
             throw new RuntimeException(context.getString(R.string.error_empty_image));
         }
@@ -145,6 +145,11 @@ public class ImageHelper {
         }
         if (scale != 1) {
             m.postScale(scale, scale);
+        }
+        if(flipHorizontal){
+            float cx = (width * scale)/2;
+            float cy = (height * scale)/2;
+            m.postScale(-1, 1, cx, cy);
         }
         int rotate = ExifData.getRotateAngleByExif(exifOrientation);
         if(rotate > 0) {
@@ -210,21 +215,23 @@ public class ImageHelper {
     }
 
     //При ресайзе удаляем exif данные так как сервер не умеет их понимать.
-    public static ExifData resizeFileWithThumb(File origFile, File smallFile, File thumbFile, double rotateAngle, Activity activity, boolean tryFixOrientation, int maxImageSize) throws Exception {
+    public static ExifData resizeFileWithThumb(
+            File origFile, File smallFile, File thumbFile, double rotateAngle, Activity activity,
+            boolean tryFixOrientation, int maxImageSize, boolean flipHorizontal) throws Exception {
         ExifData exifData = new ExifData(origFile.getAbsolutePath());
         Bitmap bigBitmap = decodeFile(origFile, maxImageSize);
 
         exifData.fixExifOrientation(tryFixOrientation ? ExifData.FixOrientationMode.UNDEFINED : ExifData.FixOrientationMode.NONE,
                 bigBitmap.getWidth(), bigBitmap.getHeight(), rotateAngle, activity);
 
-        Bitmap bitmap = resizeBitmapAndRotateByExif(activity, bigBitmap, maxImageSize, exifData.getOrientation());
+        Bitmap bitmap = resizeBitmapAndRotateByExif(activity, bigBitmap, maxImageSize, exifData.getOrientation(), flipHorizontal);
         saveBitmap(activity, bitmap, smallFile);
         if(bitmap != bigBitmap){
             bitmap.recycle();
             bitmap = null;
         }
         if(thumbFile!= null) {
-            Bitmap thumbBitmap = resizeBitmapAndRotateByExif(activity, bigBitmap, getThumbSize(activity, maxImageSize), exifData.getOrientation());
+            Bitmap thumbBitmap = resizeBitmapAndRotateByExif(activity, bigBitmap, getThumbSize(activity, maxImageSize), exifData.getOrientation(), flipHorizontal);
             saveBitmap(activity, thumbBitmap, thumbFile);
             thumbBitmap.recycle();
             thumbBitmap = null;
