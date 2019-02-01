@@ -93,6 +93,8 @@ Flags for both mode:
 .withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
 ```
 
+## Screenshots
+<img src='screens/take_barcode.jpg' width='240'/><img src='screens/take_picture.jpg' width='240'/><img src='screens/take_picture_full.jpg' width='240'/>
 
 # Developed By
 
