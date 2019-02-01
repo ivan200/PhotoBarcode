@@ -578,10 +578,14 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             if(mPhotoBarcodeScannerBuilder.hasThumbnails()){
                 thumbsFile = new File(ImageHelper.getThumbsDir(PhotoBarcodeActivity.this), mCurrentFile.getName());
             }
-            imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile, orientationHelper != null ? orientationHelper.getSensorAngle() : 0.0,
-                    this, mPhotoBarcodeScannerBuilder.isCameraTryFixOrientation(),
-                    mPhotoBarcodeScannerBuilder.getImageLargerSide(),
-                    mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT);
+
+            boolean fixOrientation = mPhotoBarcodeScannerBuilder.cameraLockRotate && mPhotoBarcodeScannerBuilder.isCameraTryFixOrientation();
+            double rotateAngle = orientationHelper != null ? orientationHelper.getSensorAngle() : 0.0;
+            int maxImageSize = mPhotoBarcodeScannerBuilder.getImageLargerSide();
+            boolean flipHorizontal = mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT;
+
+            imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile,
+                    rotateAngle,this, fixOrientation,maxImageSize,flipHorizontal);
         } catch (Exception e) {
             ex = e;
         }
