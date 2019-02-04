@@ -96,8 +96,8 @@ public class ImageHelper {
         }
 
         FileOutputStream fOut = new FileOutputStream(saveFile);
-        //Cсервер не может обработать jpeg если у него неправильные первые или последние 2 байта. (ffd8 и ffd9)
-        //Потому приходится проверять и править вручную
+        // Some servers can't handle jpeg if it has the wrong first or last 2 bytes. (ffd8 and ffd9)
+        // So we have to check and edit it manually
         boolean properStart = ((bytes[0]) == ((byte) 0xff)) && ((bytes[1]) == ((byte) 0xd8));
         boolean properEnd = ((bytes[bytes.length - 2]) == ((byte) 0xff)) && ((bytes[bytes.length - 1]) == ((byte) 0xd9));
         BufferedOutputStream bos = new BufferedOutputStream(fOut);
@@ -137,7 +137,7 @@ public class ImageHelper {
         Matrix m = new Matrix();
         float scale = 1;
         int max = Math.max(width, height);
-        //Если изображение больше ем нужно, то усеньшаем его до maxSize
+        //If the image is larger than necessary, then reduce it to maxSize
         if(max > maxSize) {
             int maxHeight = maxSize;
             int maxWidth = maxSize;
@@ -146,6 +146,7 @@ public class ImageHelper {
         if (scale != 1) {
             m.postScale(scale, scale);
         }
+        //If the image is taken on the front camera, it should be flipped
         if(flipHorizontal){
             float cx = (width * scale)/2;
             float cy = (height * scale)/2;
@@ -214,7 +215,7 @@ public class ImageHelper {
         }
     }
 
-    //При ресайзе удаляем exif данные так как сервер не умеет их понимать.
+    //When resizing, we delete exif data since some servers just skip them
     public static ExifData resizeFileWithThumb(
             File origFile, File smallFile, File thumbFile, double rotateAngle, Activity activity,
             boolean tryFixOrientation, int maxImageSize, boolean flipHorizontal) throws Exception {

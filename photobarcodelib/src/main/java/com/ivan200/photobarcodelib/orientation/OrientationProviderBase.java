@@ -61,7 +61,7 @@ abstract public class OrientationProviderBase implements SensorEventListener {
         mSensorManager.unregisterListener(this);
     }
 
-    //Расчёт угла поворота по вектору поворота
+    //The calculation of the rotation angle of the rotation vector
     protected void setAngleByRotVec(float[] m_lastRotVec) {
         if (m_lastRotVec!= null && m_lastRotVec.length >= 3) {
             float[] rotationMatrix = new float[9];
@@ -80,7 +80,7 @@ abstract public class OrientationProviderBase implements SensorEventListener {
         }
     }
 
-    //Расчёт угла поворота по сенсору ускорения
+    //Calculation of the rotation angle of the acceleration sensor
     protected void setAngleByAccel(float[] m_lastAccels) {
         if (m_lastAccels != null && m_lastAccels.length >= 3) {
             float aX = m_lastAccels[0];

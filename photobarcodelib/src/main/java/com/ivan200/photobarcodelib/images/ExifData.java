@@ -220,12 +220,12 @@ public class ExifData {
     boolean isFixed = false;
 
     public enum FixOrientationMode {
-        ALL, //Правка ориентации в любом случае.
-        UNDEFINED, //Правка ориентации только если не определена.
-        NONE //Не исправляем ориентацию.
+        ALL,        //Fix orientation in any case.
+        UNDEFINED,  //Fix orientation only if not defined.
+        NONE        //Don't fix the orientation.
     }
 
-    //Если ориентация самой картинки не определена, то задаём ориентацию по повороту телефона
+    //If the orientation of the image itself is not defined, then set the orientation by the phone angle
     public void fixExifOrientation(FixOrientationMode mode, int imgWidth, int imgHeight, Double rotation, Activity activity) {
         this.fixOrientationMode = mode;
         this.imgWidth = imgWidth;

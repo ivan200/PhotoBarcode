@@ -973,7 +973,9 @@ public class CameraSource {
         return minMax(list, function, true);
     }
 
-    //Получение элемента коллекции с минимальным или максимальным значением переданной функции
+    /**
+     * Getting the collection item with the minimum or maximum value of the passed function
+    **/
     private static <T> T minMax(List<T> list, Function<T, Integer> function, boolean min) {
         if(list == null || list.isEmpty()){
             return null;

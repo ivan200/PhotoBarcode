@@ -49,7 +49,7 @@ public class OrientationProviderAccMag extends OrientationProviderBase {
         }
     }
 
-    //Расчёт угла поворота по сенсору ускорения и магнетометру.
+    //Calculation of the angle of rotation of the acceleration sensor and magnetometer.
     private void setAngleByAccMag() {
         if (mLastAccels != null && mLastMagFields!= null) {
             float[] accMagMatrix = new float[9];

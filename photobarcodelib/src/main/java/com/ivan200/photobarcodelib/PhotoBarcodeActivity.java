@@ -294,7 +294,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         if (mPhotoBarcodeScannerBuilder.isTakingPictureMode()) {
             takePictureLayout.setVisibility(View.VISIBLE);
 
-            //Добавляем дополнительный отступ снизу (сбоку) экана, если имеются экранные кнопки или вырез на экране
+            //Add an additional padding at the bottom (side) of the screen if there are on-screen buttons or a cutout on the screen
             ViewCompat.setOnApplyWindowInsetsListener(mCameraSourcePreview, (v, insets) -> {
                 WindowManager wm = (WindowManager) this.getSystemService(Context.WINDOW_SERVICE);
                 int rotation = wm != null ? wm.getDefaultDisplay().getRotation() : 0;
@@ -416,7 +416,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
     }
 
-    //Фокусировка на определённой точке вью
+    //Focus on a specific view point
     private boolean focus(View view, MotionEvent event){
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:

@@ -38,15 +38,16 @@ public class OrientationProviderOrient extends OrientationProviderBase {
         }
     }
 
-    //Расчёт угла поворота по сенсору ориентации
+    //Calculation of the rotation angle of the sensor orientation
     private void setAngleByOrient() {
         if (m_lastOrient != null && m_lastOrient.length >= 3) {
-            float azimuth = m_lastOrient[0];    //направление на северный полюс
-            float pitch = m_lastOrient[1];      //0 = экраном вверх, +-180 = экраном вниз, >0 = кверх ногами, <0 = нормальная ориентация
-            float roll = m_lastOrient[2];       //0 = вертикально (или вверх ногами), 90 = поворот налево, -90 = поворот направо
+            float azimuth = m_lastOrient[0];    //direction to the North pole
+            float pitch = m_lastOrient[1];      //0 = screen up, +-180 = screen down, >0 = upside down, <0 = normal orientation
+            float roll = m_lastOrient[2];       //0 = vertical (or upside down), 90 = turn left, -90 = turn right
             inclination = (double)(Math.abs(pitch) * -1 + 90);
 
-            //Данный угол считается не очень корректно. Eесли положить телефон на стол, то при наклоне вбок, угол поворота будет считаться только после 45 градусов)
+            //This angle is not considered correct. If you put the phone on the table, when tilted sideways,
+            // the angle of rotation will be considered only after 45 degrees)
             if (pitch > 0){
                 sensorAngle = (double) (180 - Math.abs(roll)) * Math.signum(roll);
             } else {
