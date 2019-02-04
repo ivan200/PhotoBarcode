@@ -1,0 +1,7 @@
+<resources>
+    <string name="error_empty_image">Imagen vacía</string>
+    <string name="error_zero_size_image">Imagen con tamaño cero</string>
+    <string name="permission_camera_rationale">Es necesario el permiso de cámara.</string>
+    <string name="permission_notification_rationale">Se necesita permiso para desactivar el sonido.</string>
+    <string name="perm_storage_unavailable">No se puede escribir en la tarjeta SD.</string>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="error_empty_image">Imatge buida</string>
+    <string name="error_zero_size_image">Imatge amb mida zero</string>
+    <string name="permission_camera_rationale">Cal permís de càmera.</string>
+    <string name="permission_notification_rationale">Es necessita permís per desactivar el so.</string>
+    <string name="perm_storage_unavailable">No es pot escriure a la targeta SD.</string>
+</resources>
