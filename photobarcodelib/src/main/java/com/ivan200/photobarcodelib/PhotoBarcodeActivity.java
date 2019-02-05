@@ -46,6 +46,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -485,6 +486,13 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
     private Consumer<File> onTakingPictureObserver = file -> {
 //            mGraphicOverlay.postDelayed(this::finish, 50);
+        if(mPhotoBarcodeScannerBuilder.mGalleryName != null){
+            try {
+                ImageHelper.copyImageToGallery(mPhotoBarcodeScannerBuilder.getActivity(), file, mPhotoBarcodeScannerBuilder.getGalleryName());
+            } catch (IOException e) {
+                mPhotoBarcodeScannerBuilder.getMinorErrorHandler().accept(e);
+            }
+        }
         setResult(Activity.RESULT_OK);
         PhotoBarcodeActivity.this.finish();
         mPhotoBarcodeScannerBuilder.getPictureListener().accept(file);

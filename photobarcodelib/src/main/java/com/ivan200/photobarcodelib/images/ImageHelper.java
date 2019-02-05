@@ -258,12 +258,13 @@ public class ImageHelper {
         return thumbSize;
     }
 
-    public static void copyImageToGallery(Context context, File image, String ALBUM)throws IOException {
+    public static void copyImageToGallery(Context context, File image, String ALBUM) throws IOException {
+        if(ALBUM == null) return;
         if(!isExternalStorageWritable()){
             throw new RuntimeException(context.getString(R.string.perm_storage_unavailable));
         }
         File externalStoragePublicDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-        File albumStorageDir = new File(externalStoragePublicDirectory, ALBUM);
+        File albumStorageDir = ALBUM.length() == 0 ? externalStoragePublicDirectory : new File(externalStoragePublicDirectory, ALBUM);
         albumStorageDir.mkdirs();
         File newGalleryFile = new File(albumStorageDir, image.getName());
         copyFile(image, newGalleryFile);

@@ -4,4 +4,5 @@
     <string name="permission_camera_rationale">Cal permís de càmera.</string>
     <string name="permission_notification_rationale">Es necessita permís per desactivar el so.</string>
     <string name="perm_storage_unavailable">No es pot escriure a la targeta SD.</string>
+    <string name="permission_sdcard_rationale">Per desar imatges a la galeria, necessiteu accés a la targeta SD.</string>
 </resources>

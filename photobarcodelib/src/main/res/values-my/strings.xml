@@ -4,4 +4,5 @@
     <string name="permission_camera_rationale">သုံးစွဲဖို့အကင်မရာများလိုအပ်နေပါသည်။</string>
     <string name="permission_notification_rationale">မှဝင်ရောက်ခွင့်ပိတ်သံလိုအပ်။</string>
     <string name="perm_storage_unavailable">မရေးနိုင်ပါတယ်အကိဳက္အမ်ား</string>
+    <string name="permission_sdcard_rationale">ကယ်တင်ဖို့ရုပ်ပုံပြခန်း၊သင်လိုအပ်သုံးစွဲဖို့အကိဳက္အမ်ား</string>
 </resources>

@@ -4,4 +4,5 @@
     <string name="permission_camera_rationale">Access to the camera is needed.</string>
     <string name="permission_notification_rationale">Access to the disable sound is needed.</string>
     <string name="perm_storage_unavailable">The SD card is not writable.</string>
+    <string name="permission_sdcard_rationale">To save images to the gallery, you need access to the SD card.</string>
 </resources>

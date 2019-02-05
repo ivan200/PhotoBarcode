@@ -4,4 +4,5 @@
     <string name="permission_camera_rationale">Es necesario el permiso de cámara.</string>
     <string name="permission_notification_rationale">Se necesita permiso para desactivar el sonido.</string>
     <string name="perm_storage_unavailable">No se puede escribir en la tarjeta SD.</string>
+    <string name="permission_sdcard_rationale">Para guardar imágenes en la galería, necesita acceder a la tarjeta SD.</string>
 </resources>

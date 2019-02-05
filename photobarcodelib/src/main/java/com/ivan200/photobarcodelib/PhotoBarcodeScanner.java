@@ -81,9 +81,16 @@ public class PhotoBarcodeScanner {
         List<String> cameraPermissions = new ArrayList<>();
         cameraPermissions.add(Manifest.permission.CAMERA);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                mPhotoBarcodeScannerBuilder.isTakingPictureMode() && mPhotoBarcodeScannerBuilder.isSoundEnabled()){
+                mPhotoBarcodeScannerBuilder.isTakingPictureMode() && !mPhotoBarcodeScannerBuilder.isSoundEnabled()){
             //to disable shutter sound on camera we need check permission for it
             cameraPermissions.add(Manifest.permission.ACCESS_NOTIFICATION_POLICY);
+        }
+
+        if(mPhotoBarcodeScannerBuilder.isTakingPictureMode() && mPhotoBarcodeScannerBuilder.mGalleryName != null){
+            cameraPermissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+                cameraPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
         }
 
         List<String> deniedPermissions = new ArrayList<>();
@@ -94,7 +101,7 @@ public class PhotoBarcodeScanner {
         }
 
         if (!deniedPermissions.isEmpty()) {
-            requestCameraPermission(cameraPermissions);
+            requestCameraPermission(deniedPermissions);
         } else {
             //Open activity
             EventBus.getDefault().postSticky(this);
@@ -110,21 +117,36 @@ public class PhotoBarcodeScanner {
                 blockedPermissions.add(permission);
             }
         }
+        ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(), cameraPermissions.toArray(new String[0]), RC_HANDLE_CAMERA_PERM);
         if(blockedPermissions.isEmpty()){
-            ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(),
-                    cameraPermissions.toArray(new String[0]), RC_HANDLE_CAMERA_PERM);
             return;
         }
 
-        boolean isCameraBlocked = blockedPermissions.get(0).equals(Manifest.permission.CAMERA);
-        int messageId = isCameraBlocked ? R.string.permission_camera_rationale
-                : R.string.permission_notification_rationale;
-        String action = isCameraBlocked ? Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                : Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS;
+        int messageId;
+        String action;
+        switch (blockedPermissions.get(0)) {
+            case Manifest.permission.ACCESS_NOTIFICATION_POLICY:
+                messageId = R.string.permission_notification_rationale;
+                action = Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS;
+                break;
+            case Manifest.permission.WRITE_EXTERNAL_STORAGE:
+            case Manifest.permission.READ_EXTERNAL_STORAGE:
+                messageId = R.string.permission_sdcard_rationale;
+                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+                break;
+            case Manifest.permission.CAMERA:
+            default:
+                messageId = R.string.permission_camera_rationale;
+                action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+                break;
+        }
+
+        String finalAction = action;
+
         Snackbar.make(mPhotoBarcodeScannerBuilder.mRootView, messageId,
                 Snackbar.LENGTH_LONG)
                 .setAction(android.R.string.ok, view ->
-                        openAppSettings(mPhotoBarcodeScannerBuilder.getActivity(), action))
+                        openAppSettings(mPhotoBarcodeScannerBuilder.getActivity(), finalAction))
                 .show();
     }
 
