@@ -12,6 +12,7 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -487,11 +488,13 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     private Consumer<File> onTakingPictureObserver = file -> {
 //            mGraphicOverlay.postDelayed(this::finish, 50);
         if(mPhotoBarcodeScannerBuilder.mGalleryName != null){
-            try {
-                ImageHelper.copyImageToGallery(mPhotoBarcodeScannerBuilder.getActivity(), file, mPhotoBarcodeScannerBuilder.getGalleryName());
-            } catch (IOException e) {
-                mPhotoBarcodeScannerBuilder.getMinorErrorHandler().accept(e);
-            }
+            AsyncTask.execute(() -> {
+                try {
+                    ImageHelper.copyImageToGallery(mPhotoBarcodeScannerBuilder.getActivity(), file, mPhotoBarcodeScannerBuilder.getGalleryName());
+                } catch (IOException e) {
+                    mPhotoBarcodeScannerBuilder.getMinorErrorHandler().accept(e);
+                }
+            });
         }
         setResult(Activity.RESULT_OK);
         PhotoBarcodeActivity.this.finish();
