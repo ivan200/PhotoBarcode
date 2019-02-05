@@ -6,7 +6,6 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.view.Display;
-import android.view.ViewGroup;
 
 import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.barcode.Barcode;
@@ -23,36 +22,21 @@ import androidx.core.util.Consumer;
 public class PhotoBarcodeScannerBuilder {
 
     protected Activity mActivity;
-    protected ViewGroup mRootView;
-
     protected CameraSource mCameraSource;
-
     protected BarcodeDetector mBarcodeDetector;
-
     protected boolean mUsed = false; //used to check if a builder is only used
-
     protected int mFacing = CameraSource.CAMERA_FACING_BACK;
     protected boolean mAutoFocusEnabled = true;
-
     protected Consumer<Barcode> onResultListener;
-
     protected int mTrackerColor = Color.parseColor("#F44336"); //Material Red 500
-
     protected boolean mSoundEnabled = true;
-
     protected boolean mFlashEnabledByDefault = false;
-
     protected int mBarcodeFormats = Barcode.ALL_FORMATS;
-
     protected String mText = "";
-
     protected String mGalleryName;
-
     protected int mScannerMode = PhotoBarcodeScanner.SCANNER_MODE_FREE;
-
     protected int mTrackerResourceID = R.drawable.ic_camera_barcode_square;
     protected int mTrackerDetectedResourceID = R.drawable.ic_camera_barcode_square_green;
-
     protected boolean takingPictureMode = false;
     protected boolean focusOnTap = true;
     protected boolean previewImage = true;
@@ -79,7 +63,6 @@ public class PhotoBarcodeScannerBuilder {
      * @param activity current activity which will contain the drawer
      */
     public PhotoBarcodeScannerBuilder(@NonNull Activity activity) {
-        this.mRootView = activity.findViewById(android.R.id.content);
         this.mActivity = activity;
     }
 
@@ -285,7 +268,6 @@ public class PhotoBarcodeScannerBuilder {
      * @param activity current activity which will contain the PhotoBarcodeScanner
      */
     public PhotoBarcodeScannerBuilder withActivity(@NonNull Activity activity) {
-        this.mRootView = activity.findViewById(android.R.id.content);
         this.mActivity = activity;
         return this;
     }

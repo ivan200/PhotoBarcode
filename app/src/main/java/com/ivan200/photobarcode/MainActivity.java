@@ -1,5 +1,6 @@
 package com.ivan200.photobarcode;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -11,6 +12,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.ivan200.photobarcodelib.PhotoBarcodeScanner;
 import com.ivan200.photobarcodelib.PhotoBarcodeScannerBuilder;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
@@ -19,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView imageView;
     TextView textView;
+    PhotoBarcodeScanner photoBarcodeScanner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void takePicture(){
-        final PhotoBarcodeScanner photoBarcodeScanner = new PhotoBarcodeScannerBuilder()
-                .withActivity(this)
+        photoBarcodeScanner = new PhotoBarcodeScannerBuilder(this)
                 .withTakingPictureMode()
                 .withPictureListener(file -> {
                     textView.setVisibility(View.GONE);
@@ -52,8 +56,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void takeBarcode() {
-        final PhotoBarcodeScanner photoBarcodeScanner = new PhotoBarcodeScannerBuilder()
-                .withActivity(this)
+        photoBarcodeScanner = new PhotoBarcodeScannerBuilder(this)
                 .withCenterTracker(true)
                 .withResultListener((Barcode barcode) -> {
                     textView.setText(barcode.rawValue);
@@ -62,5 +65,21 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .build();
         photoBarcodeScanner.start();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(photoBarcodeScanner != null){
+            photoBarcodeScanner.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(photoBarcodeScanner != null){
+            photoBarcodeScanner.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }
