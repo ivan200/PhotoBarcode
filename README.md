@@ -22,10 +22,9 @@ dependencies {
 }
 ```
 
-
 # Usage
 
-## For take picture
+## To taking picture
 ```java
 fabPicture.setOnClickListener(view -> {
     final PhotoBarcodeScanner photoBarcodeScanner = new PhotoBarcodeScannerBuilder()
@@ -39,7 +38,7 @@ fabPicture.setOnClickListener(view -> {
 });
  ```
  
-## For scan barcode
+## To scan a barcode
 ```java
 fabBarcode.setOnClickListener(view -> {
     final PhotoBarcodeScanner photoBarcodeScanner = new PhotoBarcodeScannerBuilder()
@@ -53,8 +52,22 @@ fabBarcode.setOnClickListener(view -> {
  ```
 That's it!
 
-## Or you can customize builder with much more parameters:
+## Or you can customize the builder with a lot more options:
 Additional parameters with default values:
+
+Flags for both modes:
+```java
+.withCameraFullScreenMode(false)       //Mode of camera preview: FullScreen - 16/9 with horizontal crop, or otherwise 4/3 with screen fit
+.withRequestedFps(25.0f)               //Fps in preview of picture.
+.withSoundEnabled(true)                //Enables or disables a sound whenever picture taken or a barcode is scanned
+.withAutoFocus(true)                   //Enables or disables auto focusing on the camera
+.withFocusOnTap(true)                  //Allow focus picture when user tap on screen
+.withFlashLightEnabledByDefault(false) //Enable flash light before open camera 
+.withCameraFacingBack(true)            //Use the camera facing back or front
+.withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
+.withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
+.withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
+```
 
 Flags for picture mode:
 ```java
@@ -64,9 +77,11 @@ Flags for picture mode:
 .withThumbnails(false)               //In addition to the photo the thumbnail will be saved too (in context.getFilesDir()/thumbnails)
 .withCameraTryFixOrientation(true)   //Automatically try to rotate final image by phone sensors
 .withImageLargerSide(1200)           //Once the picture is taken, if its too big, it automatically resizes by the maximum side
+.withSavePhotoToGallery(String)      //Once the picture is taken, it automatically saved into phone gallery as well (DCIM directory)
+                                     //You need to have WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE permissions in your manifest file to use it
 ```
 
-Flags for barcode mode:	
+Flags for barcode mode:
 ```java
 .withCenterTracker(false)              //Enables the default center tracker (white square in screen)
 .withResultListener(Consumer<Barcode>) //Called immediately after a barcode was scanned
@@ -78,20 +93,24 @@ Flags for barcode mode:
 .withOnlyQRCodeScanning()              //Setup scan only QR-Code barcodes
 .withBarcodeFormats(int)               //Bit mask that selects which formats this barcode detector should recognize.
 ```
-	
-Flags for both mode:	
+
+## Notice
+If you want the library to fully handle requests permissions, 
+you need to pass onActivityResult and onRequestPermissionsResult to PhotoBarcodeScanner, for example like this:
 ```java
-.withCameraFullScreenMode(false)       //Mode of taking pictures: FullScreen - 16/9 with horizontal crop, or otherwise 4/3 with screen fit
-.withRequestedFps(25.0f)               //Fps in preview of picture.
-.withSoundEnabled(true)                //Enables or disables a sound whenever picture taken or a barcode is scanned
-.withAutoFocus(true)                   //Enables or disables auto focusing on the camera
-.withFocusOnTap(true)                  //Allow focus picture when user tap on screen
-.withFlashLightEnabledByDefault(false) //Enable flash light before open camera 
-.withCameraFacingBack(true)            //Use the camera facing back or front
-.withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
-.withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
-.withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
+@Override
+public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    photoBarcodeScanner.onRequestPermissionsResult(requestCode, permissions, grantResults);
+}
+
+@Override
+protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    photoBarcodeScanner.onActivityResult(requestCode, resultCode, data);
+}
 ```
+Or you can manage permissions by yourself before calling photoBarcodeScanner.start();
 
 ## Screenshots
 <img src='screens/take_barcode.jpg' width='240'/><img src='screens/take_picture.jpg' width='240'/><img src='screens/take_picture_full.jpg' width='240'/>
