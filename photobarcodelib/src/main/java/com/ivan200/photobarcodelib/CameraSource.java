@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringDef;
 import androidx.arch.core.util.Function;
@@ -86,7 +87,7 @@ public class CameraSource {
             Camera.Parameters.FOCUS_MODE_MACRO
     })
     @Retention(RetentionPolicy.SOURCE)
-    private @interface FocusMode {
+    public @interface FocusMode {
     }
 
     @StringDef({
@@ -97,7 +98,7 @@ public class CameraSource {
             Camera.Parameters.FLASH_MODE_TORCH
     })
     @Retention(RetentionPolicy.SOURCE)
-    private @interface FlashMode {
+    public @interface FlashMode {
     }
 
     private Context mContext;
@@ -539,6 +540,24 @@ public class CameraSource {
             }
 
             return false;
+        }
+    }
+
+    /**
+     * Get supported flash modes.
+     */
+    @NonNull
+    public List<String> getSupportedFlashModes() {
+        synchronized (mCameraLock) {
+            List<String> flashModes = null;
+            if (mCamera != null) {
+                Camera.Parameters parameters = mCamera.getParameters();
+                flashModes = parameters.getSupportedFlashModes();
+            }
+            if(flashModes == null){
+                flashModes = new ArrayList<>();
+            }
+            return flashModes;
         }
     }
 

@@ -415,7 +415,7 @@ public class PhotoBarcodeScannerBuilder {
 
         mCameraSource = new CameraSource.Builder(mActivity, mBarcodeDetector)
                 .setFacing(mFacing)
-                .setFlashMode(mFlashEnabledByDefault ? Camera.Parameters.FLASH_MODE_TORCH : null)
+                .setFlashMode(mFlashEnabledByDefault ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF)
                 .setRequestedPreviewSize(previewWidth, previewHeight)
                 .setMinImageSize(getImageLargerSide())
                 .setFocusMode(focusMode)

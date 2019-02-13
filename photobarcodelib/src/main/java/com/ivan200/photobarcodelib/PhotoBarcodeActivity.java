@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -49,6 +50,11 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
@@ -82,7 +88,31 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
      */
     private boolean mDetectionConsumed = false;
 
-    private boolean mFlashOn = false;
+
+    private String currentFlashMode;
+    private List<String> allFlashModes = null;
+    private static List<String> allCameraFlashModes = Arrays.asList(
+            Camera.Parameters.FLASH_MODE_OFF,
+            Camera.Parameters.FLASH_MODE_ON,
+            Camera.Parameters.FLASH_MODE_AUTO,
+            Camera.Parameters.FLASH_MODE_RED_EYE,
+            Camera.Parameters.FLASH_MODE_TORCH
+    );
+    private static List<String> allBarcodeFlashModes = Arrays.asList(
+            Camera.Parameters.FLASH_MODE_OFF,
+            Camera.Parameters.FLASH_MODE_TORCH
+    );
+
+    Map<String, Integer> flashResourcesMapping = createFlashMapping();
+    private static Map<String, Integer> createFlashMapping() {
+        Map<String,Integer> myMap = new HashMap<>();
+        myMap.put(Camera.Parameters.FLASH_MODE_OFF, R.drawable.ic_camera_flash_off);
+        myMap.put(Camera.Parameters.FLASH_MODE_ON, R.drawable.ic_camera_flash_on);
+        myMap.put(Camera.Parameters.FLASH_MODE_AUTO, R.drawable.ic_camera_flash_auto);
+        myMap.put(Camera.Parameters.FLASH_MODE_RED_EYE, R.drawable.ic_camera_flash_red_eye);
+        myMap.put(Camera.Parameters.FLASH_MODE_TORCH, R.drawable.ic_camera_flash_torch);
+        return myMap;
+    }
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     SavePictureTask savePictureTask;
@@ -258,28 +288,16 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
     }
 
-    private void checkEnableTorch(boolean flashOn){
-        if (flashOn) {
-            flashToggleIcon.setImageResource(R.drawable.ic_camera_flash_on);
-            enableTorch();
-        } else {
-            flashToggleIcon.setImageResource(R.drawable.ic_camera_flash_off);
-            disableTorch();
-        }
-    }
-
     private void setupButtons() {
         if (mPhotoBarcodeScannerBuilder.isFocusOnTap()
                 && getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_AUTOFOCUS)) {
             screenButton.setOnTouchListener(this::focus);
         }
 
-        flashToggleIcon.setOnClickListener(v -> {
-            mFlashOn ^= true;
-            checkEnableTorch(mFlashOn);
-        });
+        flashToggleIcon.setOnClickListener(v -> nextTorch());
+
         if (mPhotoBarcodeScannerBuilder.isFlashEnabledByDefault()) {
-            flashToggleIcon.setImageResource(R.drawable.ic_camera_flash_off);
+            setTorchImage(Camera.Parameters.FLASH_MODE_TORCH);
         }
 
         if (mPhotoBarcodeScannerBuilder.isCameraFullScreenMode()) {
@@ -400,19 +418,57 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         return false;
     }
 
-    private void enableTorch() {
+    private void nextTorch() {
         try {
-            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-            mPhotoBarcodeScannerBuilder.getCameraSource().start();
+            HashSet<String> supportedFlashModes = new HashSet<>(mPhotoBarcodeScannerBuilder.getCameraSource().getSupportedFlashModes());
+            if(supportedFlashModes.size() > 0){
+                if(allFlashModes == null){
+                    allFlashModes = new ArrayList<>();
+                    List<String> modes = mPhotoBarcodeScannerBuilder.isTakingPictureMode() ? allCameraFlashModes : allBarcodeFlashModes;
+                    for (String mode : modes) {
+                        if(supportedFlashModes.contains(mode)){
+                            allFlashModes.add(mode);
+                        }
+                    }
+                }
+                if(allFlashModes.size() <= 1){
+                    return;
+                }
+
+                String flashMode = mPhotoBarcodeScannerBuilder.getCameraSource().getFlashMode();
+                int i = allFlashModes.indexOf(flashMode);
+                i++;
+                if(i >= allFlashModes.size()) i = 0;
+                String newFlashMode = allFlashModes.get(i);
+
+                setTorch(newFlashMode);
+                setTorchImage(newFlashMode);
+            }
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
 
-    private void disableTorch() {
+    private void setTorch(@CameraSource.FlashMode String flashMode) {
         try {
-            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode);
             mPhotoBarcodeScannerBuilder.getCameraSource().start();
+        } catch (Exception e) {
+            handleSilentError(PhotoBarcodeActivity.this, e);
+        }
+    }
+    private void setTorchImage(@CameraSource.FlashMode String flashMode) {
+        try {
+            if(TextUtils.isEmpty(flashMode)){
+                return;
+            }
+            Integer flashResource = flashResourcesMapping.get(flashMode);
+            if(flashResource == null || flashResource <= 0){
+                flashResource = R.drawable.ic_camera_flash_off;
+            }
+            flashToggleIcon.setImageResource(flashResource);
+
+            currentFlashMode = flashMode;
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
@@ -659,8 +715,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             });
 
             previewImage.startAnimation(fadeImage);
+            flashOnButton.setVisibility(View.INVISIBLE);
 
-            checkEnableTorch(false);
+            setTorch(Camera.Parameters.FLASH_MODE_OFF);
         } catch (Exception ex){
             handleSilentError(PhotoBarcodeActivity.this, ex);
         }
@@ -679,7 +736,8 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     private void redoPicture(View v) {
         takePictureButton.setSelected(false);
         redoButton.hide();
-        checkEnableTorch(mFlashOn);
+        setTorch(currentFlashMode);
+        flashOnButton.setVisibility(View.VISIBLE);
 
         AlphaAnimation fadeImage = new AlphaAnimation(1, 0);
         fadeImage.setDuration(200);
