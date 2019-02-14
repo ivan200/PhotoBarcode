@@ -448,6 +448,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
             setTorch(newFlashMode);
             setTorchImage(newFlashMode);
+            Consumer<FlashMode> fcHandler = mPhotoBarcodeScannerBuilder.getFlashChangedHandler();
+            if(fcHandler!= null){
+                fcHandler.accept(newFlashMode);
+            }
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }

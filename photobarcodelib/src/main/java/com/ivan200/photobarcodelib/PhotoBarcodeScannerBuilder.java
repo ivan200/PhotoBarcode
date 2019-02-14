@@ -49,6 +49,7 @@ public class PhotoBarcodeScannerBuilder {
     protected boolean hasThumbnails = false;
     protected boolean cameraLockRotate = true;
     protected Consumer<Throwable> minorErrorHandler;
+    protected Consumer<FlashMode> flashChangedHandler;
 
     /**
      * Default constructor
@@ -252,6 +253,18 @@ public class PhotoBarcodeScannerBuilder {
     public PhotoBarcodeScannerBuilder withMinorErrorHandler(Consumer<Throwable> minorErrorHandler) {
         this.minorErrorHandler = minorErrorHandler;
         return this;
+    }
+
+    /**
+     * Sets handler when flash changed (for ability to save the last used flash mode in settings)
+     */
+    public PhotoBarcodeScannerBuilder withFlashChangedHandler(Consumer<FlashMode> flashChangedHandler) {
+        this.flashChangedHandler = flashChangedHandler;
+        return this;
+    }
+
+    public Consumer<FlashMode> getFlashChangedHandler() {
+        return flashChangedHandler;
     }
 
     /**
