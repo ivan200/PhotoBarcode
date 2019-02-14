@@ -16,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -50,19 +49,18 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.arch.core.util.Function;
 import androidx.core.app.ActivityCompat;
 import androidx.core.util.Consumer;
 import androidx.core.view.ViewCompat;
@@ -88,31 +86,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
      */
     private boolean mDetectionConsumed = false;
 
+    private FlashMode currentTempFlashMode;
 
-    private String currentFlashMode;
-    private List<String> allFlashModes = null;
-    private static List<String> allCameraFlashModes = Arrays.asList(
-            Camera.Parameters.FLASH_MODE_OFF,
-            Camera.Parameters.FLASH_MODE_ON,
-            Camera.Parameters.FLASH_MODE_AUTO,
-            Camera.Parameters.FLASH_MODE_RED_EYE,
-            Camera.Parameters.FLASH_MODE_TORCH
-    );
-    private static List<String> allBarcodeFlashModes = Arrays.asList(
-            Camera.Parameters.FLASH_MODE_OFF,
-            Camera.Parameters.FLASH_MODE_TORCH
-    );
-
-    Map<String, Integer> flashResourcesMapping = createFlashMapping();
-    private static Map<String, Integer> createFlashMapping() {
-        Map<String,Integer> myMap = new HashMap<>();
-        myMap.put(Camera.Parameters.FLASH_MODE_OFF, R.drawable.ic_camera_flash_off);
-        myMap.put(Camera.Parameters.FLASH_MODE_ON, R.drawable.ic_camera_flash_on);
-        myMap.put(Camera.Parameters.FLASH_MODE_AUTO, R.drawable.ic_camera_flash_auto);
-        myMap.put(Camera.Parameters.FLASH_MODE_RED_EYE, R.drawable.ic_camera_flash_red_eye);
-        myMap.put(Camera.Parameters.FLASH_MODE_TORCH, R.drawable.ic_camera_flash_torch);
-        return myMap;
-    }
+    private static FlashMode[] allCameraFlashModes = {FlashMode.OFF, FlashMode.AUTO, FlashMode.ON, FlashMode.RED_EYE, FlashMode.TORCH};
+    private static FlashMode[] allBarcodeFlashModes = {FlashMode.OFF, FlashMode.TORCH};
 
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     SavePictureTask savePictureTask;
@@ -178,10 +155,12 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     public void onPhotoBarcodeScanner(PhotoBarcodeScanner photoBarcodeScanner) {
         this.mPhotoBarcodeScanner = photoBarcodeScanner;
         mPhotoBarcodeScannerBuilder = mPhotoBarcodeScanner.getPhotoBarcodeScannerBuilder();
+
         if(onBuilderHandler != null){
             onBuilderHandler.run();
             onBuilderHandler = null;
         }
+        currentTempFlashMode = mPhotoBarcodeScannerBuilder.getDefaultFlashMode();
         barcodeDetector = mPhotoBarcodeScanner.getPhotoBarcodeScannerBuilder().getBarcodeDetector();
 
         toggleFullScreen(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !mPhotoBarcodeScannerBuilder.isCameraFullScreenMode());
@@ -294,12 +273,15 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             screenButton.setOnTouchListener(this::focus);
         }
 
-        flashToggleIcon.setOnClickListener(v -> nextTorch());
-
-        if (mPhotoBarcodeScannerBuilder.isFlashEnabledByDefault()) {
-            setTorchImage(Camera.Parameters.FLASH_MODE_TORCH);
+        if(mCameraSourcePreview != null){
+            if(mCameraSourcePreview.mCameraStarted){
+                setupFlashIcon();
+            } else {
+                mCameraSourcePreview.cameraStartedCallback = this::setupFlashIcon;
+            }
         }
 
+        flashToggleIcon.setOnClickListener(v -> nextTorch());
         if (mPhotoBarcodeScannerBuilder.isCameraFullScreenMode()) {
             clearTopMargins(mCameraSourcePreview);
             clearTopMargins(previewImage);
@@ -409,6 +391,22 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
     }
 
+    private void setupFlashIcon() {
+        CameraSource cameraSource = mPhotoBarcodeScannerBuilder.getCameraSource();
+        if (cameraSource != null) {
+            List<FlashMode> allowableFlashModes = getAllowableFlashModes();
+            if (allowableFlashModes.size() > 1) {
+                if (allowableFlashModes.contains(currentTempFlashMode)) {
+                    setTorchImage(currentTempFlashMode);
+                } else {
+                    setTorchImage(FlashMode.OFF);
+                }
+            } else {
+                flashToggleIcon.setVisibility(View.GONE);
+            }
+        }
+    }
+
     private boolean canUseTorch() {
         try {
             return mPhotoBarcodeScannerBuilder.getCameraSource().canUseFlash();
@@ -418,57 +416,66 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         return false;
     }
 
+    private List<FlashMode> getAllowableFlashModes() {
+        List<FlashMode> allFlashModes = new ArrayList<>();
+        if(!canUseTorch()){
+            return allFlashModes;
+        }
+        HashSet<String> supportedFlashModes = new HashSet<>(mPhotoBarcodeScannerBuilder.getCameraSource().getSupportedFlashModes());
+        if (supportedFlashModes.size() > 0) {
+            FlashMode[] modes = mPhotoBarcodeScannerBuilder.isTakingPictureMode() ? allCameraFlashModes : allBarcodeFlashModes;
+            for (FlashMode mode : modes) {
+                if (supportedFlashModes.contains(mode.mode)) {
+                    allFlashModes.add(mode);
+                }
+            }
+        }
+        return allFlashModes;
+    }
+
     private void nextTorch() {
         try {
-            HashSet<String> supportedFlashModes = new HashSet<>(mPhotoBarcodeScannerBuilder.getCameraSource().getSupportedFlashModes());
-            if(supportedFlashModes.size() > 0){
-                if(allFlashModes == null){
-                    allFlashModes = new ArrayList<>();
-                    List<String> modes = mPhotoBarcodeScannerBuilder.isTakingPictureMode() ? allCameraFlashModes : allBarcodeFlashModes;
-                    for (String mode : modes) {
-                        if(supportedFlashModes.contains(mode)){
-                            allFlashModes.add(mode);
-                        }
-                    }
-                }
-                if(allFlashModes.size() <= 1){
-                    return;
-                }
-
-                String flashMode = mPhotoBarcodeScannerBuilder.getCameraSource().getFlashMode();
-                int i = allFlashModes.indexOf(flashMode);
-                i++;
-                if(i >= allFlashModes.size()) i = 0;
-                String newFlashMode = allFlashModes.get(i);
-
-                setTorch(newFlashMode);
-                setTorchImage(newFlashMode);
+            List<FlashMode> allowableFlashModes = getAllowableFlashModes();
+            if (allowableFlashModes.size() <= 1) {
+                return;
             }
+
+            String currentFlashMode = mPhotoBarcodeScannerBuilder.getCameraSource().getFlashMode();
+            int i = indexOf(allowableFlashModes, m -> m.mode.equals(currentFlashMode));
+            i++;
+            if (i >= allowableFlashModes.size()) i = 0;
+            FlashMode newFlashMode = allowableFlashModes.get(i);
+
+            setTorch(newFlashMode);
+            setTorchImage(newFlashMode);
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
 
-    private void setTorch(@CameraSource.FlashMode String flashMode) {
+    public static <T> int indexOf(Iterable<T> list, Function<T, Boolean> function){
+        int i = 0;
+        for (T t : list) {
+            if (function.apply(t)) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    private void setTorch(@NonNull FlashMode flashMode) {
         try {
-            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode);
+            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode.mode);
             mPhotoBarcodeScannerBuilder.getCameraSource().start();
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
-    private void setTorchImage(@CameraSource.FlashMode String flashMode) {
+    private void setTorchImage(@NonNull FlashMode flashMode) {
         try {
-            if(TextUtils.isEmpty(flashMode)){
-                return;
-            }
-            Integer flashResource = flashResourcesMapping.get(flashMode);
-            if(flashResource == null || flashResource <= 0){
-                flashResource = R.drawable.ic_camera_flash_off;
-            }
-            flashToggleIcon.setImageResource(flashResource);
-
-            currentFlashMode = flashMode;
+            flashToggleIcon.setImageResource(flashMode.resource);
+            currentTempFlashMode = flashMode;
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
@@ -715,9 +722,11 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             });
 
             previewImage.startAnimation(fadeImage);
-            flashOnButton.setVisibility(View.INVISIBLE);
 
-            setTorch(Camera.Parameters.FLASH_MODE_OFF);
+            if(canUseTorch()) {
+                flashOnButton.setVisibility(View.INVISIBLE);
+                setTorch(FlashMode.OFF);
+            }
         } catch (Exception ex){
             handleSilentError(PhotoBarcodeActivity.this, ex);
         }
@@ -736,8 +745,11 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     private void redoPicture(View v) {
         takePictureButton.setSelected(false);
         redoButton.hide();
-        setTorch(currentFlashMode);
-        flashOnButton.setVisibility(View.VISIBLE);
+
+        if(canUseTorch()){
+            setTorch(currentTempFlashMode);
+            flashOnButton.setVisibility(View.VISIBLE);
+        }
 
         AlphaAnimation fadeImage = new AlphaAnimation(1, 0);
         fadeImage.setDuration(200);

@@ -30,7 +30,7 @@ public class PhotoBarcodeScannerBuilder {
     protected Consumer<Barcode> onResultListener;
     protected int mTrackerColor = Color.parseColor("#F44336"); //Material Red 500
     protected boolean mSoundEnabled = true;
-    protected boolean mFlashEnabledByDefault = false;
+    protected FlashMode mDefaultFlashMode = FlashMode.AUTO;
     protected int mBarcodeFormats = Barcode.ALL_FORMATS;
     protected String mText = "";
     protected String mGalleryName;
@@ -312,8 +312,8 @@ public class PhotoBarcodeScannerBuilder {
         return this;
     }
 
-    public PhotoBarcodeScannerBuilder withFlashLightEnabledByDefault(boolean enabled) {
-        mFlashEnabledByDefault = enabled;
+    public PhotoBarcodeScannerBuilder withDefaultFlashMode(FlashMode flashMode) {
+        mDefaultFlashMode = flashMode;
         return this;
     }
 
@@ -415,7 +415,7 @@ public class PhotoBarcodeScannerBuilder {
 
         mCameraSource = new CameraSource.Builder(mActivity, mBarcodeDetector)
                 .setFacing(mFacing)
-                .setFlashMode(mFlashEnabledByDefault ? Camera.Parameters.FLASH_MODE_TORCH : Camera.Parameters.FLASH_MODE_OFF)
+                .setFlashMode(mDefaultFlashMode.mode)
                 .setRequestedPreviewSize(previewWidth, previewHeight)
                 .setMinImageSize(getImageLargerSide())
                 .setFocusMode(focusMode)
@@ -467,10 +467,10 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
-     * Get the flash enabled by default value associated with this builder
+     * Get the default flash mode value associated with this builder
      */
-    public boolean isFlashEnabledByDefault() {
-        return mFlashEnabledByDefault;
+    public FlashMode getDefaultFlashMode() {
+        return mDefaultFlashMode;
     }
 
     /**

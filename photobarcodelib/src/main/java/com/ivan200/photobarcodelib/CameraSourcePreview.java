@@ -36,13 +36,16 @@ import java.io.IOException;
 import androidx.core.app.ActivityCompat;
 
 public class CameraSourcePreview extends ViewGroup {
+
     private static final String TAG = "CameraSourcePreview";
 
     private Context mContext;
     private SurfaceView mSurfaceView;
     private boolean mStartRequested;
-
     private boolean mSurfaceAvailable;
+    protected boolean mCameraStarted;
+    protected Runnable cameraStartedCallback;
+
     public boolean isSurfaceAvailable() {
         return mSurfaceAvailable;
     }
@@ -133,6 +136,7 @@ public class CameraSourcePreview extends ViewGroup {
         if (mCameraSource != null) {
             mCameraSource.stop();
         }
+        mCameraStarted = false;
     }
 
     public void release() {
@@ -157,6 +161,11 @@ public class CameraSourcePreview extends ViewGroup {
                 }
                 mOverlay.clear();
             }
+            if(cameraStartedCallback != null){
+                cameraStartedCallback.run();
+                cameraStartedCallback = null;
+            }
+            mCameraStarted = true;
             mStartRequested = false;
         }
     }

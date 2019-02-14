@@ -98,7 +98,7 @@ public class CameraSource {
             Camera.Parameters.FLASH_MODE_TORCH
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface FlashMode {
+    private @interface FlashMode {
     }
 
     private Context mContext;
