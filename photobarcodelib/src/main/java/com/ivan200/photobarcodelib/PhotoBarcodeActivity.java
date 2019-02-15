@@ -12,6 +12,7 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.SensorManager;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -47,7 +48,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -392,7 +392,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             try {
                 mCameraSourcePreview.setCameraFullScreenMode(mPhotoBarcodeScannerBuilder.isCameraFullScreenMode());
                 mCameraSourcePreview.start(mCameraSource, mGraphicOverlay);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 mCameraSource.release();
                 mCameraSource = null;
 
@@ -428,7 +428,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                     cameraListener.accept(newFacing == CameraSource.CAMERA_FACING_BACK);
                 }
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
@@ -453,7 +453,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     private boolean canUseTorch() {
         try {
             return mPhotoBarcodeScannerBuilder.getCameraSource().canUseFlash();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
         return false;
@@ -495,7 +495,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             if(flashListener!= null){
                 flashListener.accept(newFlashMode);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
@@ -515,7 +515,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         try {
             mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode.mode);
             mPhotoBarcodeScannerBuilder.getCameraSource().start();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
@@ -523,7 +523,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         try {
             flashToggleIcon.setImageResource(flashMode.resource);
             currentTempFlashMode = flashMode;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
     }
@@ -564,13 +564,13 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 focusAreas.add(new Camera.Area(focusArea, 1000));
                 try {
                     mPhotoBarcodeScannerBuilder.getCameraSource().setFocusAreas(focusAreas);
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     handleSilentError(PhotoBarcodeActivity.this, ex);
                 }
                 try {
                     mPhotoBarcodeScannerBuilder.getCameraSource().autoFocus(success ->
                             runOnUiThread(() -> focusView.hide()));
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     focusView.hide();
                     handleSilentError(PhotoBarcodeActivity.this, e);
                 }
@@ -594,7 +594,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             AsyncTask.execute(() -> {
                 try {
                     ImageHelper.copyImageToGallery(mPhotoBarcodeScannerBuilder.getActivity(), file, mPhotoBarcodeScannerBuilder.getGalleryName());
-                } catch (IOException e) {
+                } catch (Throwable e) {
                     mPhotoBarcodeScannerBuilder.getMinorErrorHandler().accept(e);
                 }
             });
@@ -673,7 +673,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 mgr.setStreamMute(AudioManager.STREAM_SYSTEM, mute);
                 return true;
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
         }
         return false;
@@ -681,7 +681,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
 
     private void savePicture(byte[] bytes, final Consumer<File> onPictureListener, final Consumer<Throwable> onErrorListener) {
-        Exception ex = null;
+        Throwable ex = null;
         try {
             if (mCurrentFile != null) {
                 ImageHelper.deleteImageFile(PhotoBarcodeActivity.this, mCurrentFile.getAbsolutePath());
@@ -701,14 +701,19 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             boolean flipHorizontal = mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT
                     && !mPhotoBarcodeScannerBuilder.isFlipFaceFrontResultImage();
 
-            imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile,
-                    rotateAngle,this, fixOrientation,maxImageSize,flipHorizontal);
-        } catch (Exception e) {
+            try {
+                imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile,
+                        rotateAngle,this, fixOrientation,maxImageSize,flipHorizontal);
+            } catch (OutOfMemoryError error){
+                //original image was already successfully saved
+                handleSilentError(PhotoBarcodeActivity.this, error);
+            }
+        } catch (Throwable e) {
             ex = e;
         }
 
         bytes = null;
-        final Exception finalEx = ex;
+        final Throwable finalEx = ex;
 
         runOnUiThread(()->{
             if(finalEx == null){
@@ -743,10 +748,14 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         try {
             previewImage.setBackgroundColor(Color.BLACK);
 
-            Bitmap bmImg = BitmapFactory.decodeFile(file.getAbsolutePath());
-            bmImg = ImageHelper.rotateBitmap(bmImg, angle);
+            try {
+                Bitmap bmImg = BitmapFactory.decodeFile(file.getAbsolutePath());
+                bmImg = ImageHelper.rotateBitmap(bmImg, angle);
+                previewImage.setImageBitmap(bmImg);
+            } catch (OutOfMemoryError error) {
+                previewImage.setImageURI(Uri.fromFile(file));
+            }
 
-            previewImage.setImageBitmap(bmImg);
             AlphaAnimation fadeImage = new AlphaAnimation(0, 1);
             fadeImage.setDuration(200);
             fadeImage.setInterpolator(new DecelerateInterpolator());
@@ -770,7 +779,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 flashOnButton.setVisibility(View.INVISIBLE);
                 setTorch(FlashMode.OFF);
             }
-        } catch (Exception ex){
+        } catch (Throwable ex){
             handleSilentError(PhotoBarcodeActivity.this, ex);
         }
 
