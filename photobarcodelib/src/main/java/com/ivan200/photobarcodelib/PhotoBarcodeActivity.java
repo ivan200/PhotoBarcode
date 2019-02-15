@@ -161,7 +161,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             onBuilderHandler.run();
             onBuilderHandler = null;
         }
-        currentTempFlashMode = mPhotoBarcodeScannerBuilder.getDefaultFlashMode();
+        currentTempFlashMode = mPhotoBarcodeScannerBuilder.getFlashMode();
         barcodeDetector = mPhotoBarcodeScanner.getPhotoBarcodeScannerBuilder().getBarcodeDetector();
 
         toggleFullScreen(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !mPhotoBarcodeScannerBuilder.isCameraFullScreenMode());
@@ -423,9 +423,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
                 setupFlashIcon();
 
-                Consumer<Boolean> fcHandler = mPhotoBarcodeScannerBuilder.getCameraChangedHandler();
-                if(fcHandler!= null){
-                    fcHandler.accept(newFacing == CameraSource.CAMERA_FACING_BACK);
+                Consumer<Boolean> cameraListener = mPhotoBarcodeScannerBuilder.getFacingListener();
+                if(cameraListener!= null){
+                    cameraListener.accept(newFacing == CameraSource.CAMERA_FACING_BACK);
                 }
             }
         } catch (Exception e) {
@@ -491,9 +491,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
             setTorch(newFlashMode);
             setTorchImage(newFlashMode);
-            Consumer<FlashMode> fcHandler = mPhotoBarcodeScannerBuilder.getFlashChangedHandler();
-            if(fcHandler!= null){
-                fcHandler.accept(newFlashMode);
+            Consumer<FlashMode> flashListener = mPhotoBarcodeScannerBuilder.getFlashListener();
+            if(flashListener!= null){
+                flashListener.accept(newFlashMode);
             }
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);

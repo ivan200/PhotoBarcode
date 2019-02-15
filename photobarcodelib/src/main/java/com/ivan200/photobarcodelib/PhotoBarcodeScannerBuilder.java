@@ -31,7 +31,7 @@ public class PhotoBarcodeScannerBuilder {
     protected Consumer<Barcode> onResultListener;
     protected int mTrackerColor = Color.parseColor("#F44336"); //Material Red 500
     protected boolean mSoundEnabled = true;
-    protected FlashMode mDefaultFlashMode = FlashMode.AUTO;
+    protected FlashMode mFlashMode = FlashMode.AUTO;
     protected int mBarcodeFormats = Barcode.ALL_FORMATS;
     protected String mText = "";
     protected String mGalleryName;
@@ -50,8 +50,8 @@ public class PhotoBarcodeScannerBuilder {
     protected boolean hasThumbnails = false;
     protected boolean cameraLockRotate = true;
     protected Consumer<Throwable> minorErrorHandler;
-    protected Consumer<FlashMode> flashChangedHandler;
-    protected Consumer<Boolean> cameraChangedHandler;
+    protected Consumer<FlashMode> flashListener;
+    protected Consumer<Boolean> facingListener;
 
     /**
      * Default constructor
@@ -260,26 +260,26 @@ public class PhotoBarcodeScannerBuilder {
     /**
      * Sets handler when flash changed (for ability to save the last used flash mode in settings)
      */
-    public PhotoBarcodeScannerBuilder withFlashChangedHandler(Consumer<FlashMode> flashChangedHandler) {
-        this.flashChangedHandler = flashChangedHandler;
+    public PhotoBarcodeScannerBuilder withFlashListener(Consumer<FlashMode> flashListener) {
+        this.flashListener = flashListener;
         return this;
     }
 
-    public Consumer<FlashMode> getFlashChangedHandler() {
-        return flashChangedHandler;
+    public Consumer<FlashMode> getFlashListener() {
+        return flashListener;
     }
 
     /**
-     * Sets handler when camera facing changed (for ability to save the last used camera facing in settings)
+     * Sets listener when camera facing changed (for ability to save the last used camera facing in settings)
      * call true if camera facing back, false otherwise
      */
-    public PhotoBarcodeScannerBuilder withCameraChangedHandler(Consumer<Boolean> cameraChangedHandler) {
-        this.cameraChangedHandler = cameraChangedHandler;
+    public PhotoBarcodeScannerBuilder withFacingListener(Consumer<Boolean> facingListener) {
+        this.facingListener = facingListener;
         return this;
     }
 
-    public Consumer<Boolean> getCameraChangedHandler() {
-        return cameraChangedHandler;
+    public Consumer<Boolean> getFacingListener() {
+        return facingListener;
     }
 
     /**
@@ -348,8 +348,11 @@ public class PhotoBarcodeScannerBuilder {
         return this;
     }
 
-    public PhotoBarcodeScannerBuilder withDefaultFlashMode(FlashMode flashMode) {
-        mDefaultFlashMode = flashMode;
+    /**
+     * Set the default flash mode before open camera
+     */
+    public PhotoBarcodeScannerBuilder withFlashMode(FlashMode flashMode) {
+        mFlashMode = flashMode;
         return this;
     }
 
@@ -455,7 +458,7 @@ public class PhotoBarcodeScannerBuilder {
 
         mCameraSource = new CameraSource.Builder(mActivity, mBarcodeDetector)
                 .setFacing(mFacing)
-                .setFlashMode(mDefaultFlashMode.mode)
+                .setFlashMode(mFlashMode.mode)
                 .setRequestedPreviewSize(previewWidth, previewHeight)
                 .setMinImageSize(getImageLargerSide())
                 .setFocusMode(focusMode)
@@ -516,8 +519,8 @@ public class PhotoBarcodeScannerBuilder {
     /**
      * Get the default flash mode value associated with this builder
      */
-    public FlashMode getDefaultFlashMode() {
-        return mDefaultFlashMode;
+    public FlashMode getFlashMode() {
+        return mFlashMode;
     }
 
     /**

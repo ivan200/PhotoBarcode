@@ -62,7 +62,8 @@ Flags for both modes:
 .withSoundEnabled(true)                //Enables or disables a sound whenever picture taken or a barcode is scanned
 .withAutoFocus(true)                   //Enables or disables auto focusing on the camera
 .withFocusOnTap(true)                  //Allow focus picture when user tap on screen
-.withFlashLightEnabledByDefault(false) //Enable flash light before open camera 
+.withFlashMode(FlashMode)              //Setup default flash mode before open camera
+.withFlashListener(Consumer<FlashMode>)//Sets handler when flash changed (for ability to save the last used flash mode in settings)
 .withCameraFacingBack(true)            //Use the camera facing back or front
 .withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
 .withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
@@ -71,14 +72,16 @@ Flags for both modes:
 
 Flags for picture mode:
 ```java
-.withTakingPictureMode()             //Activate takingPicture mode instead of taking barcode (barcode mode is default)
-.withPreviewImage(true)              //Allow preview image and redo it before it returned
-.withPictureListener(Consumer<File>) //Set listener to take picture, file will saved in context.getFilesDir()/photos
-.withThumbnails(false)               //In addition to the photo the thumbnail will be saved too (in context.getFilesDir()/thumbnails)
-.withCameraTryFixOrientation(true)   //Automatically try to rotate final image by phone sensors
-.withImageLargerSide(1200)           //Once the picture is taken, if its too big, it automatically resizes by the maximum side
-.withSavePhotoToGallery(String)      //Once the picture is taken, it automatically saved into phone gallery as well (DCIM directory)
-                                     //You need to have WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE permissions in your manifest file to use it
+.withTakingPictureMode()               //Activate takingPicture mode instead of taking barcode (barcode mode is default)
+.withPreviewImage(true)                //Allow preview image and redo it before it returned
+.withPictureListener(Consumer<File>)   //Set listener to take picture, file will saved in context.getFilesDir()/photos
+.withFacingListener(Consumer<Boolean>) //Sets listener when camera facing changed (for ability to save the last used camera facing in settings)
+.withThumbnails(false)                 //In addition to the photo the thumbnail will be saved too (in context.getFilesDir()/thumbnails)
+.withCameraTryFixOrientation(true)     //Automatically try to rotate final image by phone sensors
+.withImageLargerSide(1200)             //Once the picture is taken, if its too big, it automatically resizes by the maximum side
+.withSavePhotoToGallery(String)        //Once the picture is taken, it automatically saved into phone gallery as well (DCIM directory)
+                                       //You need to have WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE permissions in your manifest file to use it
+                                     
 ```
 
 Flags for barcode mode:
