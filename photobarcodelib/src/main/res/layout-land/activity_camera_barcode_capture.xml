@@ -58,8 +58,7 @@
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
             android:layout_margin="38dp"
-            android:adjustViewBounds="true"
-            android:alpha="0.5"/>
+            android:adjustViewBounds="true"/>
 
         <LinearLayout
             android:id="@+id/flashIconButton"
