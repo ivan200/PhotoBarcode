@@ -27,6 +27,7 @@ public class PhotoBarcodeScannerBuilder {
     protected boolean mUsed = false; //used to check if a builder is only used
     protected int mFacing = CameraSource.CAMERA_FACING_BACK;
     protected boolean mAutoFocusEnabled = true;
+    protected boolean mChangeCameraAllowed = true;
     protected Consumer<Barcode> onResultListener;
     protected int mTrackerColor = Color.parseColor("#F44336"); //Material Red 500
     protected boolean mSoundEnabled = true;
@@ -302,6 +303,14 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
+     * Enables or possibility to change camera facing
+     */
+    public PhotoBarcodeScannerBuilder withChangeCameraAllowed(boolean allowed) {
+        mChangeCameraAllowed = allowed;
+        return this;
+    }
+
+    /**
      * Sets the tracker color used by the barcode scanner, By default this is Material Red 500 (#F44336).
      */
     public PhotoBarcodeScannerBuilder withTrackerColor(int color) {
@@ -399,6 +408,7 @@ public class PhotoBarcodeScannerBuilder {
         }
         mUsed = true;
         buildMobileVisionBarcodeDetector();
+        buildCameraSource();
         PhotoBarcodeScanner photoBarcodeScanner = new PhotoBarcodeScanner(this);
         photoBarcodeScanner.setOnResultListener(onResultListener);
         return photoBarcodeScanner;
@@ -408,14 +418,17 @@ public class PhotoBarcodeScannerBuilder {
      * Build a barcode scanner using the Mobile Vision Barcode API
      */
     private void buildMobileVisionBarcodeDetector() {
-        String focusMode = Camera.Parameters.FOCUS_MODE_FIXED;
-        if (mAutoFocusEnabled) {
-            focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE;
-        }
         if (!isTakingPictureMode()) {
             mBarcodeDetector = new BarcodeDetector.Builder(mActivity)
                     .setBarcodeFormats(mBarcodeFormats)
                     .build();
+        }
+    }
+
+    protected void buildCameraSource(){
+        String focusMode = Camera.Parameters.FOCUS_MODE_FIXED;
+        if (mAutoFocusEnabled) {
+            focusMode = Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE;
         }
 
         Size deviceSize = getDeviceDisplaySizePixels(mActivity);
@@ -470,6 +483,13 @@ public class PhotoBarcodeScannerBuilder {
      */
     public String getText() {
         return mText;
+    }
+
+    /**
+     * Get the possibility to change camera facing associated with this builder
+     */
+    public boolean isChangeCameraAllowed() {
+        return mChangeCameraAllowed;
     }
 
     /**

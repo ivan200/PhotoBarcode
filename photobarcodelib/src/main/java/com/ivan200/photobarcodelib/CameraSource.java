@@ -595,6 +595,17 @@ public class CameraSource {
         }
     }
 
+    public static boolean canUseFrontFacingCamera() {
+        CameraInfo cameraInfo = new CameraInfo();
+        for (int i = 0; i < Camera.getNumberOfCameras(); ++i) {
+            Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == CAMERA_FACING_FRONT) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Gets the current flash mode setting.
      *

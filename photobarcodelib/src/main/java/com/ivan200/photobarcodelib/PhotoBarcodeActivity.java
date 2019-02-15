@@ -119,6 +119,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     ImageView previewImage;
     LinearLayout flashOnButton;
     ImageButton flashToggleIcon;
+    ImageButton cameraToggleIcon;
     TextView topTextView;
     ImageView centerTracker;
     View screenButton;
@@ -172,6 +173,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         previewImage = findViewById(R.id.preview_image);
         flashOnButton = findViewById(R.id.flashIconButton);
         flashToggleIcon = findViewById(R.id.flashIcon);
+        cameraToggleIcon = findViewById(R.id.changeCameraIcon);
         topTextView = findViewById(R.id.topText);
         mGraphicOverlay = findViewById(R.id.graphicOverlay);
         mCameraSourcePreview = findViewById(R.id.preview);
@@ -229,9 +231,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         if (flashToggleIcon != null) {
             flashToggleIcon.animate().rotation(currentItemRotationAngle).setDuration(rotationDuration).start();
         }
+        if (cameraToggleIcon != null) {
+            cameraToggleIcon.animate().rotation(currentItemRotationAngle).setDuration(rotationDuration).start();
+        }
     }
-
-
 
     private void setupLayout() {
         String topText = mPhotoBarcodeScannerBuilder.getText();
@@ -282,6 +285,8 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
 
         flashToggleIcon.setOnClickListener(v -> nextTorch());
+        cameraToggleIcon.setOnClickListener(v -> nextCamera());
+
         if (mPhotoBarcodeScannerBuilder.isCameraFullScreenMode()) {
             clearTopMargins(mCameraSourcePreview);
             clearTopMargins(previewImage);
@@ -327,9 +332,19 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 takePictureButton.setOnClickListener(this::takePicture);
                 onVolumeKeysDownListener = ()-> takePicture(null);
             }
+
+            if (mPhotoBarcodeScannerBuilder.isChangeCameraAllowed() && CameraSource.canUseFrontFacingCamera()) {
+                cameraToggleIcon.setVisibility(View.VISIBLE);
+                int mFacing = mPhotoBarcodeScannerBuilder.mFacing;
+                cameraToggleIcon.setImageResource(mFacing == CameraSource.CAMERA_FACING_BACK
+                        ? R.drawable.ic_camera_camera_rear : R.drawable.ic_camera_camera_front);
+            } else {
+                cameraToggleIcon.setVisibility(View.GONE);
+            }
         } else {
             takePictureLayout.setVisibility(View.GONE);
             previewImage.setVisibility(View.GONE);
+            cameraToggleIcon.setVisibility(View.GONE);
         }
 
         if (mPhotoBarcodeScannerBuilder.isFocusOnTap()) {
@@ -391,11 +406,34 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
     }
 
+    private void nextCamera() {
+        try {
+            CameraSource cameraSource = mPhotoBarcodeScannerBuilder.getCameraSource();
+            if (cameraSource != null) {
+                int newFacing = cameraSource.getCameraFacing() == CameraSource.CAMERA_FACING_BACK
+                        ? CameraSource.CAMERA_FACING_FRONT : CameraSource.CAMERA_FACING_BACK;
+
+                cameraSource.stop();
+                mPhotoBarcodeScannerBuilder.mFacing = newFacing;
+                mPhotoBarcodeScannerBuilder.buildCameraSource();
+                startCameraSource();
+
+                cameraToggleIcon.setImageResource(newFacing == CameraSource.CAMERA_FACING_BACK
+                        ? R.drawable.ic_camera_camera_rear : R.drawable.ic_camera_camera_front);
+
+                setupFlashIcon();
+            }
+        } catch (Exception e) {
+            handleSilentError(PhotoBarcodeActivity.this, e);
+        }
+    }
+
     private void setupFlashIcon() {
         CameraSource cameraSource = mPhotoBarcodeScannerBuilder.getCameraSource();
         if (cameraSource != null) {
             List<FlashMode> allowableFlashModes = getAllowableFlashModes();
             if (allowableFlashModes.size() > 1) {
+                flashToggleIcon.setVisibility(View.VISIBLE);
                 if (allowableFlashModes.contains(currentTempFlashMode)) {
                     setTorchImage(currentTempFlashMode);
                 } else {

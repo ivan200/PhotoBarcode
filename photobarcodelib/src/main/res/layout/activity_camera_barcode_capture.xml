@@ -64,6 +64,8 @@
             android:id="@+id/flashIconButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/colorTextBlackDivider"
             android:gravity="end">
 
             <androidx.appcompat.widget.AppCompatImageButton
@@ -73,6 +75,15 @@
                 android:layout_width="@dimen/size_icon_bounding"
                 android:layout_height="@dimen/size_icon_bounding"
                 app:srcCompat="@drawable/ic_camera_flash_off"/>
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:background="@color/colorTransparent"
+                android:id="@+id/changeCameraIcon"
+                android:scaleType="center"
+                android:layout_width="@dimen/size_icon_bounding"
+                android:layout_height="@dimen/size_icon_bounding"
+                app:srcCompat="@drawable/ic_camera_camera_rear"/>
+
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatImageView
