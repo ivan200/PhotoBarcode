@@ -112,7 +112,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
     File mCurrentFile;
 
-    ImageView focusImage;
+    FocusView focusView;
     ImageButton takePictureButton;
     FloatingActionButton redoButton;
     LinearLayout takePictureLayout;
@@ -166,7 +166,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
         toggleFullScreen(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP || !mPhotoBarcodeScannerBuilder.isCameraFullScreenMode());
 
-        focusImage = findViewById(R.id.focus_square);
+        focusView = findViewById(R.id.focus_view);
         takePictureButton = findViewById(R.id.btn_takePicture);
         redoButton = findViewById(R.id.btn_redoPicture);
         takePictureLayout = findViewById(R.id.ll_takePicture);
@@ -348,9 +348,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
 
         if (mPhotoBarcodeScannerBuilder.isFocusOnTap()) {
-            focusImage.setVisibility(View.INVISIBLE);
+            focusView.setVisibility(View.INVISIBLE);
         } else {
-            focusImage.setVisibility(View.GONE);
+            focusView.setVisibility(View.GONE);
         }
     }
 
@@ -541,20 +541,14 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                     return false;
                 }
 
-                runOnUiThread(() -> {
-                    focusImage.setVisibility(View.VISIBLE);
-                    focusImage.animate()
-                            .x(event.getRawX() - focusImage.getWidth() / 2f)
-                            .y(event.getRawY() - focusImage.getHeight() / 2f)
-                            .setDuration(0)
-                            .start();
-                });
-
                 int pointerId = event.getPointerId(0);
                 int pointerIndex = event.findPointerIndex(pointerId);
                 // Get the pointer's current position
                 float x = event.getX(pointerIndex);
                 float y = event.getY(pointerIndex);
+
+                runOnUiThread(() -> focusView.anim(300, x, y));
+
                 float touchMajor = event.getTouchMajor();
                 float touchMinor = event.getTouchMinor();
                 Rect touchRect = new Rect((int) (x - touchMajor / 2), (int) (y - touchMinor / 2),
@@ -575,10 +569,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 }
                 try {
                     mPhotoBarcodeScannerBuilder.getCameraSource().autoFocus(success ->
-                            runOnUiThread(() ->
-                                    focusImage.setVisibility(View.INVISIBLE)));
+                            runOnUiThread(() -> focusView.hide()));
                 } catch (Exception e) {
-                    focusImage.setVisibility(View.INVISIBLE);
+                    focusView.hide();
                     handleSilentError(PhotoBarcodeActivity.this, e);
                 }
                 return true;

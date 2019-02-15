@@ -43,13 +43,11 @@
             android:textColor="@android:color/white"
             android:textStyle="bold"/>
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/focus_square"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            app:srcCompat="@drawable/ic_camera_focus"
-            android:visibility="visible"/>
+        <com.ivan200.photobarcodelib.FocusView
+            android:id="@+id/focus_view"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            />
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/barcode_square"

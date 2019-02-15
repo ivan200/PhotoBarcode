@@ -65,11 +65,9 @@ Flags for both modes:
 .withFlashMode(FlashMode)              //Setup default flash mode before open camera
 .withFlashListener(Consumer<FlashMode>)//Sets handler when flash changed (for ability to save the last used flash mode in settings)
 .withCameraFacingBack(true)            //Use the camera facing back or front
-.withFlipFaceFrontResultImage(false)   //Enables or disables flip result image of facing front camera
 .withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
 .withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
 .withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
-
 ```
 
 Flags for picture mode:
@@ -78,6 +76,7 @@ Flags for picture mode:
 .withPreviewImage(true)                //Allow preview image and redo it before it returned
 .withPictureListener(Consumer<File>)   //Set listener to take picture, file will saved in context.getFilesDir()/photos
 .withFacingListener(Consumer<Boolean>) //Sets listener when camera facing changed (for ability to save the last used camera facing in settings)
+.withFlipFaceFrontResultImage(false)   //Enables or disables flip result image of facing front camera
 .withThumbnails(false)                 //In addition to the photo the thumbnail will be saved too (in context.getFilesDir()/thumbnails)
 .withCameraTryFixOrientation(true)     //Automatically try to rotate final image by phone sensors
 .withImageLargerSide(1200)             //Once the picture is taken, if its too big, it automatically resizes by the maximum side
