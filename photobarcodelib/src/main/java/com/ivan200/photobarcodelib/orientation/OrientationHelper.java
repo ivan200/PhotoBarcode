@@ -46,7 +46,6 @@ public class OrientationHelper {
 
     private OrientationProviderBase getCurrentProvider(Context context){
         List<Function<SensorManager, OrientationProviderBase>> providers = Arrays.asList(
-                OrientationProviderRotVectorG.providerData,
                 OrientationProviderRotVector.providerData,
                 OrientationProviderAccMag.providerData,
                 OrientationProviderAccel.providerData,

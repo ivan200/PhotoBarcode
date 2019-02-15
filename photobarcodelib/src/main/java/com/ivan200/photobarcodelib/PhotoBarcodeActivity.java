@@ -424,7 +424,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                 setupFlashIcon();
 
                 Consumer<Boolean> cameraListener = mPhotoBarcodeScannerBuilder.getFacingListener();
-                if(cameraListener!= null){
+                if (cameraListener != null) {
                     cameraListener.accept(newFacing == CameraSource.CAMERA_FACING_BACK);
                 }
             }
@@ -703,7 +703,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             boolean fixOrientation = mPhotoBarcodeScannerBuilder.cameraLockRotate && mPhotoBarcodeScannerBuilder.isCameraTryFixOrientation();
             double rotateAngle = orientationHelper != null ? orientationHelper.getSensorAngle() : 0.0;
             int maxImageSize = mPhotoBarcodeScannerBuilder.getImageLargerSide();
-            boolean flipHorizontal = mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT;
+
+            //by default we always flipping face camera, but if builder flipping is set, we don't flip it
+            boolean flipHorizontal = mPhotoBarcodeScannerBuilder.mFacing == CameraSource.CAMERA_FACING_FRONT
+                    && !mPhotoBarcodeScannerBuilder.isFlipFaceFrontResultImage();
 
             imageExifData = ImageHelper.resizeFileWithThumb(mCurrentFile, mCurrentFile, thumbsFile,
                     rotateAngle,this, fixOrientation,maxImageSize,flipHorizontal);

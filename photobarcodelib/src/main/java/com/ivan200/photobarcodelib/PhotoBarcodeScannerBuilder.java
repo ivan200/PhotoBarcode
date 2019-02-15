@@ -41,6 +41,7 @@ public class PhotoBarcodeScannerBuilder {
     protected boolean takingPictureMode = false;
     protected boolean focusOnTap = true;
     protected boolean previewImage = true;
+    protected boolean flipFaceFrontResultImage = false;
     protected Consumer<File> pictureListener;
     protected Consumer<Throwable> errorListener;
     protected boolean cameraFullScreenMode = false;
@@ -325,6 +326,14 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
+     * Enables or disables flip result image of facing front camera
+     */
+    public PhotoBarcodeScannerBuilder withFlipFaceFrontResultImage(boolean flip) {
+        flipFaceFrontResultImage = flip;
+        return this;
+    }
+
+    /**
      * Sets the tracker color used by the barcode scanner, By default this is Material Red 500 (#F44336).
      */
     public PhotoBarcodeScannerBuilder withTrackerColor(int color) {
@@ -546,5 +555,9 @@ public class PhotoBarcodeScannerBuilder {
 
     public void clean() {
         mActivity = null;
+    }
+
+    public boolean isFlipFaceFrontResultImage() {
+        return flipFaceFrontResultImage;
     }
 }

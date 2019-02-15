@@ -65,9 +65,11 @@ Flags for both modes:
 .withFlashMode(FlashMode)              //Setup default flash mode before open camera
 .withFlashListener(Consumer<FlashMode>)//Sets handler when flash changed (for ability to save the last used flash mode in settings)
 .withCameraFacingBack(true)            //Use the camera facing back or front
+.withFlipFaceFrontResultImage(false)   //Enables or disables flip result image of facing front camera
 .withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
 .withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
 .withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
+
 ```
 
 Flags for picture mode:
@@ -81,7 +83,6 @@ Flags for picture mode:
 .withImageLargerSide(1200)             //Once the picture is taken, if its too big, it automatically resizes by the maximum side
 .withSavePhotoToGallery(String)        //Once the picture is taken, it automatically saved into phone gallery as well (DCIM directory)
                                        //You need to have WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE permissions in your manifest file to use it
-                                     
 ```
 
 Flags for barcode mode:
