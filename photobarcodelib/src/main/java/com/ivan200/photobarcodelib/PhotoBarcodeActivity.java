@@ -422,6 +422,11 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
                         ? R.drawable.ic_camera_camera_rear : R.drawable.ic_camera_camera_front);
 
                 setupFlashIcon();
+
+                Consumer<Boolean> fcHandler = mPhotoBarcodeScannerBuilder.getCameraChangedHandler();
+                if(fcHandler!= null){
+                    fcHandler.accept(newFacing == CameraSource.CAMERA_FACING_BACK);
+                }
             }
         } catch (Exception e) {
             handleSilentError(PhotoBarcodeActivity.this, e);

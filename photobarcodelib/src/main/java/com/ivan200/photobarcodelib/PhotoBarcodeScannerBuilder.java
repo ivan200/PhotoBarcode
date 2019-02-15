@@ -51,6 +51,7 @@ public class PhotoBarcodeScannerBuilder {
     protected boolean cameraLockRotate = true;
     protected Consumer<Throwable> minorErrorHandler;
     protected Consumer<FlashMode> flashChangedHandler;
+    protected Consumer<Boolean> cameraChangedHandler;
 
     /**
      * Default constructor
@@ -266,6 +267,19 @@ public class PhotoBarcodeScannerBuilder {
 
     public Consumer<FlashMode> getFlashChangedHandler() {
         return flashChangedHandler;
+    }
+
+    /**
+     * Sets handler when camera facing changed (for ability to save the last used camera facing in settings)
+     * call true if camera facing back, false otherwise
+     */
+    public PhotoBarcodeScannerBuilder withCameraChangedHandler(Consumer<Boolean> cameraChangedHandler) {
+        this.cameraChangedHandler = cameraChangedHandler;
+        return this;
+    }
+
+    public Consumer<Boolean> getCameraChangedHandler() {
+        return cameraChangedHandler;
     }
 
     /**
