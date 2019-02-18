@@ -35,7 +35,7 @@ public class PhotoBarcodeScannerBuilder {
     protected int mBarcodeFormats = Barcode.ALL_FORMATS;
     protected String mText = "";
     protected String mGalleryName;
-    protected int mScannerMode = PhotoBarcodeScanner.SCANNER_MODE_FREE;
+    protected int mScannerMode = PhotoBarcodeScanner.SCANNER_MODE_CENTER;
     protected int mTrackerResourceID = R.drawable.ic_camera_barcode_square;
     protected int mTrackerDetectedResourceID = R.drawable.ic_camera_barcode_square_green;
     protected boolean takingPictureMode = false;
@@ -402,7 +402,7 @@ public class PhotoBarcodeScannerBuilder {
      * Please note that you can still scan a barcode outside the center tracker! This is purely a visual change.
      */
     public PhotoBarcodeScannerBuilder withCenterTracker(boolean enabled) {
-        mScannerMode = PhotoBarcodeScanner.SCANNER_MODE_CENTER;
+        mScannerMode = enabled ? PhotoBarcodeScanner.SCANNER_MODE_CENTER : PhotoBarcodeScanner.SCANNER_MODE_FREE;
         return this;
     }
 
