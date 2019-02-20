@@ -88,9 +88,6 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
     private FlashMode currentTempFlashMode;
 
-    private static FlashMode[] allCameraFlashModes = {FlashMode.OFF, FlashMode.AUTO, FlashMode.ON, FlashMode.RED_EYE, FlashMode.TORCH};
-    private static FlashMode[] allBarcodeFlashModes = {FlashMode.OFF, FlashMode.TORCH};
-
     ExecutorService executorService = Executors.newSingleThreadExecutor();
     SavePictureTask savePictureTask;
     Future<?> savePictureFuture;
@@ -466,9 +463,9 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         }
         HashSet<String> supportedFlashModes = new HashSet<>(mPhotoBarcodeScannerBuilder.getCameraSource().getSupportedFlashModes());
         if (supportedFlashModes.size() > 0) {
-            FlashMode[] modes = mPhotoBarcodeScannerBuilder.isTakingPictureMode() ? allCameraFlashModes : allBarcodeFlashModes;
+            FlashMode[] modes = mPhotoBarcodeScannerBuilder.isTakingPictureMode() ? FlashMode.allCameraFlashModes : FlashMode.allBarcodeFlashModes;
             for (FlashMode mode : modes) {
-                if (supportedFlashModes.contains(mode.mode)) {
+                if (supportedFlashModes.contains(mode.getMode())) {
                     allFlashModes.add(mode);
                 }
             }
@@ -484,7 +481,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
             }
 
             String currentFlashMode = mPhotoBarcodeScannerBuilder.getCameraSource().getFlashMode();
-            int i = indexOf(allowableFlashModes, m -> m.mode.equals(currentFlashMode));
+            int i = indexOf(allowableFlashModes, m -> m.getMode().equals(currentFlashMode));
             i++;
             if (i >= allowableFlashModes.size()) i = 0;
             FlashMode newFlashMode = allowableFlashModes.get(i);
@@ -513,7 +510,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
 
     private void setTorch(@NonNull FlashMode flashMode) {
         try {
-            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode.mode);
+            mPhotoBarcodeScannerBuilder.getCameraSource().setFlashMode(flashMode.getMode());
             mPhotoBarcodeScannerBuilder.getCameraSource().start();
         } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
@@ -521,7 +518,7 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
     }
     private void setTorchImage(@NonNull FlashMode flashMode) {
         try {
-            flashToggleIcon.setImageResource(flashMode.resource);
+            flashToggleIcon.setImageResource(flashMode.getResource());
             currentTempFlashMode = flashMode;
         } catch (Throwable e) {
             handleSilentError(PhotoBarcodeActivity.this, e);
@@ -832,6 +829,10 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         super.onBackPressed();
         if(mCurrentFile!= null){
             ImageHelper.deleteImageFile(PhotoBarcodeActivity.this, mCurrentFile.getAbsolutePath());
+        }
+        Runnable cancelListener = mPhotoBarcodeScannerBuilder.getCancelListener();
+        if(cancelListener != null){
+            cancelListener.run();
         }
     }
 

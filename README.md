@@ -68,6 +68,7 @@ Flags for both modes:
 .withCameraLockRotate(true)            //Lock rotate phone and orientation in camera activity (to avoid recreating view)
 .withErrorListener(ex->{showAlert()})  //Possibility to customize fatal exceptions occured 
 .withMinorErrorHandler(printStackTrace)//Possibility to customize handler of non fatal exceptions
+.withCancelListener(Runnable)          //Called when back pressed in camera activity or dialog for request permission is cancelled  
 ```
 
 Flags for picture mode:

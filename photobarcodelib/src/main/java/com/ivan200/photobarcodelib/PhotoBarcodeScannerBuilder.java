@@ -53,6 +53,7 @@ public class PhotoBarcodeScannerBuilder {
     protected Consumer<Throwable> minorErrorHandler;
     protected Consumer<FlashMode> flashListener;
     protected Consumer<Boolean> facingListener;
+    protected Runnable cancelListener;
 
     /**
      * Default constructor
@@ -184,9 +185,11 @@ public class PhotoBarcodeScannerBuilder {
     }
 
     /**
-     * Once the picture is taken, it automatically save into phone gallery too (DCIM directory)
+     * Once the picture is taken, it automatically save into phone gallery also (DCIM directory)
      * you need permissions WRITE_EXTERNAL_STORAGE and READ_EXTERNAL_STORAGE to use it
-     * null folderName = do not save, empty = without additional folder, folderName = folder name for personal gallery
+     * null folderName = do not save,
+     * empty = without additional folder (Just copy to DCIM folder),
+     * folderName = folder name for personal gallery like DCIM/YourFolderName/
      */
     public PhotoBarcodeScannerBuilder withSavePhotoToGallery(String folderName) {
         this.mGalleryName = folderName;
@@ -420,6 +423,16 @@ public class PhotoBarcodeScannerBuilder {
         return this;
     }
 
+
+    public Runnable getCancelListener() {
+        return cancelListener;
+    }
+
+    public PhotoBarcodeScannerBuilder withCancelListener(Runnable cancelListener) {
+        this.cancelListener = cancelListener;
+        return this;
+    }
+
     /**
      * Build a ready to use PhotoBarcodeScanner
      *
@@ -467,7 +480,7 @@ public class PhotoBarcodeScannerBuilder {
 
         mCameraSource = new CameraSource.Builder(mActivity, mBarcodeDetector)
                 .setFacing(mFacing)
-                .setFlashMode(mFlashMode.mode)
+                .setFlashMode(mFlashMode.getMode())
                 .setRequestedPreviewSize(previewWidth, previewHeight)
                 .setMinImageSize(getImageLargerSide())
                 .setFocusMode(focusMode)

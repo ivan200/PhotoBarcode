@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
+import android.view.KeyEvent;
 
 import com.google.android.gms.vision.barcode.Barcode;
 
@@ -205,8 +206,31 @@ public class PhotoBarcodeScanner {
                 requestPermissions();
             }
         });
+        boolean cancellable = mPhotoBarcodeScannerBuilder.getCancelListener() != null;
+        if(cancellable){
+            builder.setOnCancelListener(dialog -> {
+                mPhotoBarcodeScannerBuilder.getCancelListener().run();
+                dialog.dismiss();
+            });
+        }
+
         builder.setNegativeButton(activity.getString(android.R.string.cancel), (dialog, id) -> dialog.dismiss());
         AlertDialog dialog = builder.create();
+        if(cancellable){
+            dialog.setOnCancelListener(d -> {
+                mPhotoBarcodeScannerBuilder.getCancelListener().run();
+                d.dismiss();
+            });
+            dialog.setOnKeyListener((arg0, keyCode, event) -> {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    if (mPhotoBarcodeScannerBuilder.getCancelListener() != null) {
+                        mPhotoBarcodeScannerBuilder.getCancelListener().run();
+                    }
+                    arg0.dismiss();
+                }
+                return true;
+            });
+        }
         dialog.show();
     }
 

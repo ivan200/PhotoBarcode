@@ -9,8 +9,11 @@ public enum FlashMode {
     RED_EYE(Camera.Parameters.FLASH_MODE_RED_EYE, R.drawable.ic_camera_flash_red_eye),
     TORCH(Camera.Parameters.FLASH_MODE_TORCH, R.drawable.ic_camera_flash_torch);
 
-    int resource;
-    String mode;
+    private int resource;
+    private String mode;
+
+    public static FlashMode[] allCameraFlashModes = {FlashMode.OFF, FlashMode.AUTO, FlashMode.ON, FlashMode.RED_EYE, FlashMode.TORCH};
+    public static FlashMode[] allBarcodeFlashModes = {FlashMode.OFF, FlashMode.TORCH};
 
     FlashMode(String mode, int resource) {
         this.mode = mode;

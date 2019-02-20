@@ -16,7 +16,7 @@
             android:value="barcode" />
         <activity
             android:theme="@style/AppTheme.NoActionBar"
-            android:name="com.ivan200.photobarcodelib.PhotoBarcodeActivity"
+            android:name=".PhotoBarcodeActivity"
             android:label="Photo" >
         </activity>
     </application>
