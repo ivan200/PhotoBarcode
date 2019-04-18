@@ -140,7 +140,7 @@ public class OrientationHelper {
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Configuration config = context.getResources().getConfiguration();
         int rotation = windowManager.getDefaultDisplay().getRotation();
-        boolean defaultLandsacpeAndIsInLandscape = (rotation == Surface.ROTATION_0 ||
+        boolean defaultLandscapeAndIsInLandscape = (rotation == Surface.ROTATION_0 ||
                 rotation == Surface.ROTATION_180) &&
                 config.orientation == Configuration.ORIENTATION_LANDSCAPE;
 
@@ -148,7 +148,7 @@ public class OrientationHelper {
                 rotation == Surface.ROTATION_270) &&
                 config.orientation == Configuration.ORIENTATION_PORTRAIT;
 
-        return defaultLandsacpeAndIsInLandscape || defaultLandscapeAndIsInPortrait;
+        return defaultLandscapeAndIsInLandscape || defaultLandscapeAndIsInPortrait;
     }
 
 

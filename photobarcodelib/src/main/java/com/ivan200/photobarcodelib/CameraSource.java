@@ -1004,7 +1004,7 @@ public class CameraSource {
     }
 
     /**
-     * Getting the collection item with the minimum or maximum value of the passed function
+     * Getting item of collection with the minimum or maximum value of the passed function
     **/
     private static <T> T minMax(List<T> list, Function<T, Integer> function, boolean min) {
         if(list == null || list.isEmpty()){
@@ -1012,19 +1012,11 @@ public class CameraSource {
         }
         Integer curInt = null;
         T curItem = null;
-        for (int i = 0; i < list.size(); i++) {
-            T item = list.get(i);
+        for (T item : list) {
             Integer result = function.apply(item);
-            if (result != null) {
-                if (curInt == null) {
-                    curInt = result;
-                    curItem = item;
-                } else {
-                    if (min ? result < curInt : result > curInt) {
-                        curInt = result;
-                        curItem = item;
-                    }
-                }
+            if (result != null && (curInt == null || (min ? result < curInt : result > curInt))) {
+                curInt = result;
+                curItem = item;
             }
         }
         return curItem;
@@ -1068,10 +1060,8 @@ public class CameraSource {
      */
     private static List<SizePair> generateValidPreviewSizeList(Camera camera) {
         Camera.Parameters parameters = camera.getParameters();
-        List<Camera.Size> supportedPreviewSizes =
-                parameters.getSupportedPreviewSizes();
-        List<Camera.Size> supportedPictureSizes =
-                parameters.getSupportedPictureSizes();
+        List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
+        List<Camera.Size> supportedPictureSizes = parameters.getSupportedPictureSizes();
         List<SizePair> validPreviewSizes = new ArrayList<>();
         for (Camera.Size previewSize : supportedPreviewSizes) {
             float previewAspectRatio = (float) previewSize.width / (float) previewSize.height;
