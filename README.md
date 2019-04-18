@@ -18,7 +18,7 @@ allprojects {
 Then, add the library to your module `build.gradle`
 ```gradle
 dependencies {
-    implementation 'com.github.ivan200:PhotoBarcode:1.1'
+    implementation 'com.github.ivan200:PhotoBarcode:1.1.1'
 }
 ```
 
