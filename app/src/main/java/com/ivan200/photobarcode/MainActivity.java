@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(photoBarcodeScanner != null){
-            photoBarcodeScanner.onActivityResult(requestCode, resultCode, data);
+            photoBarcodeScanner.onActivityResult(this, requestCode, resultCode, data);
         }
     }
 
@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(photoBarcodeScanner != null){
-            photoBarcodeScanner.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            photoBarcodeScanner.onRequestPermissionsResult(this, requestCode, permissions, grantResults);
         }
     }
 }

@@ -830,9 +830,11 @@ public class PhotoBarcodeActivity extends AppCompatActivity {
         if(mCurrentFile!= null){
             ImageHelper.deleteImageFile(PhotoBarcodeActivity.this, mCurrentFile.getAbsolutePath());
         }
-        Runnable cancelListener = mPhotoBarcodeScannerBuilder.getCancelListener();
-        if(cancelListener != null){
-            cancelListener.run();
+        if(mPhotoBarcodeScannerBuilder != null){
+            Runnable cancelListener = mPhotoBarcodeScannerBuilder.getCancelListener();
+            if(cancelListener != null){
+                cancelListener.run();
+            }
         }
     }
 

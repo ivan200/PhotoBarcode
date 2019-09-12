@@ -19,14 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.arch.core.util.Function;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.util.Consumer;
 
-public class PhotoBarcodeScanner {
+public class PhotoBarcodeScanner extends PermissionRequester {
 
     /**
      * Request codes
@@ -60,7 +56,7 @@ public class PhotoBarcodeScanner {
         mPhotoBarcodeScannerBuilder.clean();
     }
 
-    private String[] getPermissionsToRequest() {
+    private List<String> getPermissionsToRequest() {
         List<String> cameraPermissions = new ArrayList<>();
         cameraPermissions.add(Manifest.permission.CAMERA);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
@@ -76,27 +72,7 @@ public class PhotoBarcodeScanner {
                 cameraPermissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
             }
         }
-        return cameraPermissions.toArray(new String[0]);
-    }
-
-    private String[] getBlockedPermissions() {
-        List<String> blockedPermissions = new ArrayList<>();
-        for (String permission : getPermissionsToRequest()){
-            if(ActivityCompat.shouldShowRequestPermissionRationale(mPhotoBarcodeScannerBuilder.getActivity(), permission)){
-                blockedPermissions.add(permission);
-            }
-        }
-        return blockedPermissions.toArray(new String[0]);
-    }
-
-    private String[] getDeniedPermissions() {
-        List<String> deniedPermissions = new ArrayList<>();
-        for (String permission : getPermissionsToRequest()){
-            if(ContextCompat.checkSelfPermission(mPhotoBarcodeScannerBuilder.getActivity(), permission) != PackageManager.PERMISSION_GRANTED){
-                deniedPermissions.add(permission);
-            }
-        }
-        return deniedPermissions.toArray(new String[0]);
+        return cameraPermissions;
     }
 
 
@@ -120,18 +96,11 @@ public class PhotoBarcodeScanner {
             return;
         }
 
-        if (getDeniedPermissions().length > 0) {
-            requestPermissions();
-        } else {
-            openActivity();
-        }
+        requestPermissions(getPermissionsToRequest(), activity, RC_HANDLE_CAMERA_PERM);
     }
 
-    private void requestPermissions(){
-        ActivityCompat.requestPermissions(mPhotoBarcodeScannerBuilder.getActivity(), getPermissionsToRequest(), RC_HANDLE_CAMERA_PERM);
-    }
-
-    private void openActivity(){
+    @Override
+    protected void onPermissionGranted(int requestCode, int resultCode, Intent data) {
         EventBus.getDefault().register(this);
 
         EventBus.getDefault().postSticky(this);
@@ -139,42 +108,13 @@ public class PhotoBarcodeScanner {
         mPhotoBarcodeScannerBuilder.getActivity().startActivity(intent);
     }
 
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == RC_HANDLE_CAMERA_PERM) {
-            String[] blockedPermissions = getBlockedPermissions();
-            if (blockedPermissions.length > 0) {
-                showDialogRationale(blockedPermissions[0], false);
-            } else {
-                int i = indexOf(grantResults, x -> x != PackageManager.PERMISSION_GRANTED);
-                if(i >=0){
-                    showDialogRationale(permissions[i], true);
-                } else {
-                    openActivity();
-                }
-            }
-        }
-    }
+    @Override
+    protected void onPermissionRejected(int requestCode, String blockedPermission) {
 
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == RC_HANDLE_CAMERA_PERM) {
-            String[] deniedPermissions = getDeniedPermissions();
-            if (deniedPermissions.length == 0) {
-                String[] blockedPermissions = getBlockedPermissions();
-                if (blockedPermissions.length == 0) {
-                    openActivity();
-                } else {
-                    showDialogRationale(blockedPermissions[0], true);
-                }
-            } else {
-                showDialogRationale(deniedPermissions[0], true);
-            }
-        }
-    }
-
-    private void showDialogRationale(String blockedPermission, boolean toAppSettings) {
         int messageId;
         String action;
         switch (blockedPermission) {
+//            case Manifest.permission.MODIFY_AUDIO_SETTINGS:
             case Manifest.permission.ACCESS_NOTIFICATION_POLICY:
                 messageId = R.string.permission_notification_rationale;
                 action = Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS;
@@ -200,11 +140,7 @@ public class PhotoBarcodeScanner {
         builder.setMessage(activity.getString(messageId));
         builder.setPositiveButton(activity.getString(android.R.string.ok), (dialog, id) -> {
             dialog.dismiss();
-            if(toAppSettings) {
-                openAppSettings(mPhotoBarcodeScannerBuilder.getActivity(), finalAction);
-            } else {
-                requestPermissions();
-            }
+            openAppSettings(mPhotoBarcodeScannerBuilder.getActivity(), finalAction);
         });
         boolean cancellable = mPhotoBarcodeScannerBuilder.getCancelListener() != null;
         if(cancellable){
@@ -248,16 +184,4 @@ public class PhotoBarcodeScanner {
             activity.startActivityForResult(intent, RC_HANDLE_CAMERA_PERM);
         }
     }
-
-
-    static int indexOf(int [] list, Function<Integer, Boolean> function){
-        for (int i = 0; i < list.length; i++) {
-            int t = list[i];
-            if (function.apply(t)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
 }
